@@ -1,5 +1,7 @@
 enum TearPhase {
   idle,
+  dragging,
+  rejoining,
   tearing,
   separating,
   falling,
