@@ -5,41 +5,33 @@ enum TearSide { left, right }
 
 /// Clips a widget to one side of a jagged tear line.
 ///
-/// The tear reveals outward from [tearOriginRatio] (0–1 along the path)
-/// so the rip starts wherever the user touched.
+/// The visible tear spans from [tearTopRatio] to [tearBottomRatio] (both 0–1
+/// along the tear path). Outside this range the card is shown at full width.
 class TearClipper extends CustomClipper<Path> {
   final List<Offset> tearPoints;
-  final double tearProgress;
+  final double tearTopRatio;
+  final double tearBottomRatio;
   final TearSide side;
   final double gapOffset;
-  final double tearOriginRatio;
 
   TearClipper({
     required this.tearPoints,
-    required this.tearProgress,
+    required this.tearTopRatio,
+    required this.tearBottomRatio,
     required this.side,
     this.gapOffset = 0,
-    this.tearOriginRatio = 0.0,
   });
 
   @override
   Path getClip(Size size) {
-    if (tearProgress <= 0 || tearPoints.isEmpty) {
+    final n = tearPoints.length;
+    if (n == 0 || tearTopRatio >= tearBottomRatio) {
       return Path()..addRect(Offset.zero & size);
     }
 
-    final n = tearPoints.length;
-    final originIndex = (n * tearOriginRatio).round().clamp(0, n - 1);
+    final topIndex = (n * tearTopRatio).round().clamp(0, n - 1);
+    final bottomIndex = (n * tearBottomRatio).round().clamp(0, n - 1);
 
-    // Expand reveal outward from origin
-    final pointsAbove = originIndex;
-    final pointsBelow = n - 1 - originIndex;
-    final topIndex =
-        (originIndex - (pointsAbove * tearProgress).round()).clamp(0, n - 1);
-    final bottomIndex =
-        (originIndex + (pointsBelow * tearProgress).round()).clamp(0, n - 1);
-
-    // If the reveal is too small, show full rect
     if (topIndex >= bottomIndex) {
       return Path()..addRect(Offset.zero & size);
     }
@@ -50,16 +42,11 @@ class TearClipper extends CustomClipper<Path> {
     final path = Path();
 
     if (side == TearSide.left) {
-      // Top-left corner
       path.moveTo(0, 0);
-      // Full width across top (card intact above tear)
       path.lineTo(size.width, 0);
-      // Down right edge to where tear starts
       path.lineTo(size.width, topY);
-      // Across to tear line
       path.lineTo(tearPoints[topIndex].dx + gapOffset, topY);
 
-      // Follow tear line downward
       for (int i = topIndex; i < bottomIndex; i++) {
         final cp = tearPoints[i];
         final next = tearPoints[i + 1];
@@ -68,25 +55,17 @@ class TearClipper extends CustomClipper<Path> {
         path.quadraticBezierTo(cp.dx + gapOffset, cp.dy, midX, midY);
       }
 
-      // Back to right edge at bottom of tear
       path.lineTo(tearPoints[bottomIndex].dx + gapOffset, bottomY);
       path.lineTo(size.width, bottomY);
-      // Down right edge (card intact below tear)
       path.lineTo(size.width, size.height);
-      // Bottom-left
       path.lineTo(0, size.height);
       path.close();
     } else {
-      // Top-right corner
       path.moveTo(size.width, 0);
-      // Full width across top
       path.lineTo(0, 0);
-      // Down left edge to where tear starts
       path.lineTo(0, topY);
-      // Across to tear line
       path.lineTo(tearPoints[topIndex].dx + gapOffset, topY);
 
-      // Follow tear line downward
       for (int i = topIndex; i < bottomIndex; i++) {
         final cp = tearPoints[i];
         final next = tearPoints[i + 1];
@@ -95,12 +74,9 @@ class TearClipper extends CustomClipper<Path> {
         path.quadraticBezierTo(cp.dx + gapOffset, cp.dy, midX, midY);
       }
 
-      // Back to left edge at bottom of tear
       path.lineTo(tearPoints[bottomIndex].dx + gapOffset, bottomY);
       path.lineTo(0, bottomY);
-      // Down left edge
       path.lineTo(0, size.height);
-      // Bottom-right
       path.lineTo(size.width, size.height);
       path.close();
     }
@@ -110,7 +86,7 @@ class TearClipper extends CustomClipper<Path> {
 
   @override
   bool shouldReclip(TearClipper oldClipper) =>
-      tearProgress != oldClipper.tearProgress ||
-      gapOffset != oldClipper.gapOffset ||
-      tearOriginRatio != oldClipper.tearOriginRatio;
+      tearTopRatio != oldClipper.tearTopRatio ||
+      tearBottomRatio != oldClipper.tearBottomRatio ||
+      gapOffset != oldClipper.gapOffset;
 }

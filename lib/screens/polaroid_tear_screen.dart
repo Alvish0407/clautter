@@ -45,8 +45,11 @@ const double _fallGravityMul = 0.6;
 const Color _bgColor = Color(0xFFF5F5F5);
 const Color _fabColor = Color(0xFFE85D6F);
 
-// ── Drag threshold to complete tear ──
-const double _tearCompleteThreshold = 0.60;
+// ── Tear threshold: fraction of card height torn to auto-complete ──
+const double _tearCompleteThreshold = 0.35;
+
+// ── How far the tear extends beyond finger (paper running ahead) ──
+const double _tearExtensionFactor = 0.4;
 
 class PolaroidTearScreen extends StatefulWidget {
   const PolaroidTearScreen({super.key});
@@ -63,12 +66,18 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
   List<Offset> _tearPathRight = [];
   int _tearSeed = 0;
 
-  // ── Drag-driven tear progress (0.0 → 1.0) ──
-  double _dragTearProgress = 0.0;
-  double _dragStartY = 0.0;
+  // ── Tear region (0–1 along card height) ──
+  double _tearTopRatio = 0.0;
+  double _tearBottomRatio = 0.0;
+  double _tearOriginRatio = 0.5; // where on card the drag started
   double _cardHeight = 0.0;
-  double _tearOriginRatio = 0.5; // where on the card the user touched (0–1)
   GlobalKey _cardKey = GlobalKey();
+
+  // ── Saved values for animations ──
+  double _rejoinStartTop = 0.0;
+  double _rejoinStartBottom = 0.0;
+  double _tearCompleteStartTop = 0.0;
+  double _tearCompleteStartBottom = 0.0;
 
   // ── Animation controllers ──
   late final AnimationController _rejoinCtrl;
@@ -101,26 +110,33 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
     _fallAnim =
         CurvedAnimation(parent: _fallCtrl, curve: Curves.easeInQuad);
 
-    // Rejoin animation: animate _dragTearProgress back to 0
+    // Rejoin: animate top & bottom back to origin (collapse tear)
     _rejoinCtrl.addListener(() {
+      final t = _rejoinCtrl.value;
       setState(() {
-        _dragTearProgress = _rejoinStartValue * (1 - _rejoinCtrl.value);
+        _tearTopRatio =
+            _rejoinStartTop + (_tearOriginRatio - _rejoinStartTop) * t;
+        _tearBottomRatio =
+            _rejoinStartBottom + (_tearOriginRatio - _rejoinStartBottom) * t;
       });
     });
     _rejoinCtrl.addStatusListener((s) {
       if (s == AnimationStatus.completed && _phase == TearPhase.rejoining) {
         setState(() {
           _phase = TearPhase.idle;
-          _dragTearProgress = 0.0;
+          _tearTopRatio = 0.0;
+          _tearBottomRatio = 0.0;
         });
       }
     });
 
-    // Tear complete animation: animate from current drag progress to 1.0
+    // Tear complete: animate top→0 and bottom→1
     _tearCompleteCtrl.addListener(() {
+      final t = _tearCompleteCtrl.value;
       setState(() {
-        _dragTearProgress =
-            _tearCompleteStartValue + (1.0 - _tearCompleteStartValue) * _tearCompleteCtrl.value;
+        _tearTopRatio = _tearCompleteStartTop * (1 - t);
+        _tearBottomRatio =
+            _tearCompleteStartBottom + (1.0 - _tearCompleteStartBottom) * t;
       });
     });
     _tearCompleteCtrl.addStatusListener((s) {
@@ -159,9 +175,6 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
     }
   }
 
-  double _rejoinStartValue = 0.0;
-  double _tearCompleteStartValue = 0.0;
-
   @override
   void dispose() {
     _rejoinCtrl.dispose();
@@ -173,20 +186,42 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
     super.dispose();
   }
 
+  // ── Responsive card width ──
+  double _responsiveCardWidth(BuildContext context) {
+    final screen = MediaQuery.of(context);
+    final screenWidth = screen.size.width;
+    final screenHeight = screen.size.height;
+    final safeTop = screen.padding.top;
+
+    // Max height available: screen minus top bar, safe area, FAB, and padding
+    final maxCardHeight = screenHeight - safeTop - 56 - 80 - 40;
+
+    // Width from ratio
+    final widthFromRatio = screenWidth * _cardWidthRatio;
+
+    // Card height = padding + photo (4:3) + bottom
+    // cardHeight = 14 + (w - 28) * 4/3 + 50 = 64 + (w - 28) * 4/3
+    // Solve for w: w = (maxCardHeight - 64) * 3/4 + 28
+    final widthFromHeight = (maxCardHeight - 64) * 3 / 4 + 28;
+
+    return min(widthFromRatio, widthFromHeight).clamp(200.0, screenWidth * 0.9);
+  }
+
+  double _cardHeightFromWidth(double cardWidth) {
+    final photoHeight = (cardWidth - _cardFramePadding * 2) * 4 / 3;
+    return _cardFramePadding + photoHeight + _cardBottomPadding;
+  }
+
   // ── Drag handlers ──
 
   void _onDragStart(DragStartDetails details) {
     if (_phase != TearPhase.idle) return;
 
-    // Generate tear path
-    _tearSeed = DateTime.now().millisecondsSinceEpoch;
-
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = screenWidth * _cardWidthRatio;
-    final photoHeight = (cardWidth - _cardFramePadding * 2) * 4 / 3;
-    final ch = _cardFramePadding + photoHeight + _cardBottomPadding;
+    final cardWidth = _responsiveCardWidth(context);
+    final ch = _cardHeightFromWidth(cardWidth);
     final cardRect = Rect.fromLTWH(0, 0, cardWidth, ch);
 
+    _tearSeed = DateTime.now().millisecondsSinceEpoch;
     _tearPathLeft = addFibrousEdge(
       generateTearPath(
         cardRect,
@@ -211,10 +246,10 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
     );
 
     _cardHeight = ch;
-    _dragStartY = details.globalPosition.dy;
-    _dragTearProgress = 0.0;
+    _tearTopRatio = 0.0;
+    _tearBottomRatio = 0.0;
 
-    // Compute where on the card the user touched (0–1)
+    // Where on card the user touched
     final cardBox = _cardKey.currentContext?.findRenderObject() as RenderBox?;
     if (cardBox != null) {
       final cardTopY = cardBox.localToGlobal(Offset.zero).dy;
@@ -230,24 +265,43 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
   void _onDragUpdate(DragUpdateDetails details) {
     if (_phase != TearPhase.dragging) return;
 
-    // Use absolute distance so dragging in any direction tears
-    final dy = (details.globalPosition.dy - _dragStartY).abs();
+    // Current finger position relative to card
+    final cardBox = _cardKey.currentContext?.findRenderObject() as RenderBox?;
+    if (cardBox == null) return;
+
+    final cardTopY = cardBox.localToGlobal(Offset.zero).dy;
+    final fingerLocalY = details.globalPosition.dy - cardTopY;
+    final fingerRatio = (fingerLocalY / _cardHeight).clamp(0.0, 1.0);
+
+    // Tear spans from start to finger
+    final rawTop = min(_tearOriginRatio, fingerRatio);
+    final rawBottom = max(_tearOriginRatio, fingerRatio);
+
+    // Extend beyond finger for natural "paper running ahead" feel
+    final range = rawBottom - rawTop;
+    final extension = range * _tearExtensionFactor;
+
     setState(() {
-      _dragTearProgress = (dy / (_cardHeight * 0.5)).clamp(0.0, 1.0);
+      _tearTopRatio = (rawTop - extension).clamp(0.0, 1.0);
+      _tearBottomRatio = (rawBottom + extension).clamp(0.0, 1.0);
     });
   }
 
   void _onDragEnd(DragEndDetails details) {
     if (_phase != TearPhase.dragging) return;
 
-    if (_dragTearProgress >= _tearCompleteThreshold) {
+    final coverage = _tearBottomRatio - _tearTopRatio;
+
+    if (coverage >= _tearCompleteThreshold) {
       // Complete the tear
-      _tearCompleteStartValue = _dragTearProgress;
+      _tearCompleteStartTop = _tearTopRatio;
+      _tearCompleteStartBottom = _tearBottomRatio;
       setState(() => _phase = TearPhase.tearing);
       _tearCompleteCtrl.forward(from: 0);
     } else {
-      // Rejoin the paper
-      _rejoinStartValue = _dragTearProgress;
+      // Rejoin
+      _rejoinStartTop = _tearTopRatio;
+      _rejoinStartBottom = _tearBottomRatio;
       setState(() => _phase = TearPhase.rejoining);
       _rejoinCtrl.forward(from: 0);
     }
@@ -272,7 +326,8 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
       // After separation reverses, rejoin the tear
       Future.delayed(_reverseDuration * 0.6, () {
         if (!mounted) return;
-        _rejoinStartValue = _dragTearProgress;
+        _rejoinStartTop = _tearTopRatio;
+        _rejoinStartBottom = _tearBottomRatio;
         _rejoinCtrl.forward(from: 0);
       });
 
@@ -280,7 +335,8 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
         if (mounted) {
           setState(() {
             _phase = TearPhase.idle;
-            _dragTearProgress = 0.0;
+            _tearTopRatio = 0.0;
+            _tearBottomRatio = 0.0;
             _tearCompleteCtrl.reset();
             _sepCtrl.reset();
             _fallCtrl.reset();
@@ -303,13 +359,11 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
   void _onTrashTapped() {
     if (_phase != TearPhase.idle) return;
 
-    _tearSeed = DateTime.now().millisecondsSinceEpoch;
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = screenWidth * _cardWidthRatio;
-    final photoHeight = (cardWidth - _cardFramePadding * 2) * 4 / 3;
-    final ch = _cardFramePadding + photoHeight + _cardBottomPadding;
+    final cardWidth = _responsiveCardWidth(context);
+    final ch = _cardHeightFromWidth(cardWidth);
     final cardRect = Rect.fromLTWH(0, 0, cardWidth, ch);
 
+    _tearSeed = DateTime.now().millisecondsSinceEpoch;
     _tearPathLeft = addFibrousEdge(
       generateTearPath(cardRect, _tearSeed,
           segmentCount: _tearSegmentCount,
@@ -328,9 +382,11 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
     );
 
     _cardHeight = ch;
-    _dragTearProgress = 0.0;
-    _tearCompleteStartValue = 0.0;
-    _tearOriginRatio = 0.5; // center for instant tear
+    _tearOriginRatio = 0.5;
+    _tearTopRatio = 0.5;
+    _tearBottomRatio = 0.5;
+    _tearCompleteStartTop = 0.5;
+    _tearCompleteStartBottom = 0.5;
     setState(() => _phase = TearPhase.tearing);
     _tearCompleteCtrl.forward(from: 0);
   }
@@ -369,8 +425,8 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
       ..translate(-cardWidth, 0.0);
   }
 
-  // ── Effective tear progress ──
-  double get _effectiveTearProgress => _dragTearProgress;
+  // ── Effective tear coverage for gap width ──
+  double get _tearCoverage => (_tearBottomRatio - _tearTopRatio).clamp(0.0, 1.0);
 
   // ── Build ──
 
@@ -386,14 +442,10 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
       );
     }
 
-    final screenWidth = MediaQuery.of(context).size.width;
-    final cardWidth = screenWidth * _cardWidthRatio;
-    final photoHeight = (cardWidth - _cardFramePadding * 2) * 4 / 3;
-    final cardHeight =
-        _cardFramePadding + photoHeight + _cardBottomPadding;
+    final cardWidth = _responsiveCardWidth(context);
+    final cardHeight = _cardHeightFromWidth(cardWidth);
 
-    final tearProgress = _effectiveTearProgress;
-    final gapWidth = _tearGapMax * tearProgress;
+    final gapWidth = _tearGapMax * _tearCoverage;
     final isAnimating = _phase != TearPhase.idle;
 
     return Scaffold(
@@ -468,10 +520,10 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
                   child: ClipPath(
                     clipper: TearClipper(
                       tearPoints: _tearPathLeft,
-                      tearProgress: tearProgress,
+                      tearTopRatio: _tearTopRatio,
+                      tearBottomRatio: _tearBottomRatio,
                       side: TearSide.left,
                       gapOffset: -gapWidth / 2,
-                      tearOriginRatio: _tearOriginRatio,
                     ),
                     child: PolaroidCard(cardWidth: cardWidth),
                   ),
@@ -489,10 +541,10 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
                   child: ClipPath(
                     clipper: TearClipper(
                       tearPoints: _tearPathRight,
-                      tearProgress: tearProgress,
+                      tearTopRatio: _tearTopRatio,
+                      tearBottomRatio: _tearBottomRatio,
                       side: TearSide.right,
                       gapOffset: gapWidth / 2,
-                      tearOriginRatio: _tearOriginRatio,
                     ),
                     child: PolaroidCard(cardWidth: cardWidth),
                   ),
