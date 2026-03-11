@@ -22,7 +22,7 @@ jobs:
         with:
           channel: stable
 
-      - name: Determine branch name
+      - name: Determine safe branch name
         id: branch
         run: |
           BRANCH="${{ github.ref_name }}"
@@ -33,37 +33,44 @@ jobs:
       - run: flutter pub get
 
       - name: Build web for preview
-        run: flutter build web --release --base-href "/clautter/"
+        run: flutter build web --release --base-href "/clautter/preview/${{ steps.branch.outputs.name }}/"
 
-      - name: Deploy to gh-pages branch
+      - name: Deploy to gh-pages/preview/<branch>
         run: |
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          PREVIEW_DIR="preview/${{ steps.branch.outputs.name }}"
 
           # Save the build output
           cp -r build/web /tmp/preview-build
 
-          # Clean any working tree changes (e.g. pubspec.lock from flutter pub get)
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Clean working tree
           git checkout -- . 2>/dev/null || true
           git clean -fd 2>/dev/null || true
 
-          # Try to fetch the existing gh-pages branch
+          # Fetch or create gh-pages branch
           if git fetch origin gh-pages 2>/dev/null; then
             git checkout gh-pages
           else
-            # gh-pages doesn't exist yet — create an orphan branch
             git checkout --orphan gh-pages
             git rm -rf .
             git commit --allow-empty -m "Initialize gh-pages branch"
           fi
 
-          # Replace all content with the new build
-          # (clean everything except .git)
-          git rm -rf . 2>/dev/null || true
-          cp -r /tmp/preview-build/* .
+          # Replace only this branch's preview directory
+          rm -rf "$PREVIEW_DIR"
+          mkdir -p "$PREVIEW_DIR"
+          cp -r /tmp/preview-build/* "$PREVIEW_DIR/"
 
-          # Commit and push
           git add -A
-          git commit -m "Deploy preview for ${{ steps.branch.outputs.raw }}" --allow-empty
+          git diff --cached --quiet || git commit -m "Deploy preview for ${{ steps.branch.outputs.raw }}"
           git push origin gh-pages
+
+      - name: Post preview URL
+        run: |
+          REPO="${{ github.repository }}"
+          OWNER=$(echo "$REPO" | cut -d'/' -f1)
+          PREVIEW_DIR="preview/${{ steps.branch.outputs.name }}"
+          echo "### Preview deployed"
+          echo "https://${OWNER}.github.io/clautter/${PREVIEW_DIR}/"

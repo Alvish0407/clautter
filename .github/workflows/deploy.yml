@@ -6,16 +6,14 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: "pages"
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -27,18 +25,37 @@ jobs:
       - run: flutter pub get
       - run: flutter build web --release --base-href "/clautter/"
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build/web
+      - name: Deploy to gh-pages (root)
+        run: |
+          # Save the build output
+          cp -r build/web /tmp/prod-build
 
-  deploy:
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Clean working tree
+          git checkout -- . 2>/dev/null || true
+          git clean -fd 2>/dev/null || true
+
+          # Fetch or create gh-pages branch
+          if git fetch origin gh-pages 2>/dev/null; then
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            git rm -rf .
+            git commit --allow-empty -m "Initialize gh-pages branch"
+          fi
+
+          # Remove everything EXCEPT the preview/ directory and .git
+          find . -maxdepth 1 \
+            ! -name '.' \
+            ! -name '.git' \
+            ! -name 'preview' \
+            -exec rm -rf {} +
+
+          # Copy production build into root
+          cp -r /tmp/prod-build/* .
+
+          git add -A
+          git diff --cached --quiet || git commit -m "Deploy production from main@${{ github.sha }}"
+          git push origin gh-pages
