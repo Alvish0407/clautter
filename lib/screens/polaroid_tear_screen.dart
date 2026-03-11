@@ -46,7 +46,7 @@ const Color _bgColor = Color(0xFFF5F5F5);
 const Color _fabColor = Color(0xFFE85D6F);
 
 // ── Drag threshold to complete tear ──
-const double _tearCompleteThreshold = 0.85;
+const double _tearCompleteThreshold = 0.60;
 
 class PolaroidTearScreen extends StatefulWidget {
   const PolaroidTearScreen({super.key});
@@ -67,6 +67,7 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
   double _dragTearProgress = 0.0;
   double _dragStartY = 0.0;
   double _cardHeight = 0.0;
+  double _tearOriginRatio = 0.5; // where on the card the user touched (0–1)
   GlobalKey _cardKey = GlobalKey();
 
   // ── Animation controllers ──
@@ -213,15 +214,26 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
     _dragStartY = details.globalPosition.dy;
     _dragTearProgress = 0.0;
 
+    // Compute where on the card the user touched (0–1)
+    final cardBox = _cardKey.currentContext?.findRenderObject() as RenderBox?;
+    if (cardBox != null) {
+      final cardTopY = cardBox.localToGlobal(Offset.zero).dy;
+      final touchLocalY = details.globalPosition.dy - cardTopY;
+      _tearOriginRatio = (touchLocalY / ch).clamp(0.0, 1.0);
+    } else {
+      _tearOriginRatio = 0.5;
+    }
+
     setState(() => _phase = TearPhase.dragging);
   }
 
   void _onDragUpdate(DragUpdateDetails details) {
     if (_phase != TearPhase.dragging) return;
 
-    final dy = details.globalPosition.dy - _dragStartY;
+    // Use absolute distance so dragging in any direction tears
+    final dy = (details.globalPosition.dy - _dragStartY).abs();
     setState(() {
-      _dragTearProgress = (dy / _cardHeight).clamp(0.0, 1.0);
+      _dragTearProgress = (dy / (_cardHeight * 0.5)).clamp(0.0, 1.0);
     });
   }
 
@@ -318,6 +330,7 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
     _cardHeight = ch;
     _dragTearProgress = 0.0;
     _tearCompleteStartValue = 0.0;
+    _tearOriginRatio = 0.5; // center for instant tear
     setState(() => _phase = TearPhase.tearing);
     _tearCompleteCtrl.forward(from: 0);
   }
@@ -458,6 +471,7 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
                       tearProgress: tearProgress,
                       side: TearSide.left,
                       gapOffset: -gapWidth / 2,
+                      tearOriginRatio: _tearOriginRatio,
                     ),
                     child: PolaroidCard(cardWidth: cardWidth),
                   ),
@@ -478,6 +492,7 @@ class _PolaroidTearScreenState extends State<PolaroidTearScreen>
                       tearProgress: tearProgress,
                       side: TearSide.right,
                       gapOffset: gapWidth / 2,
+                      tearOriginRatio: _tearOriginRatio,
                     ),
                     child: PolaroidCard(cardWidth: cardWidth),
                   ),
