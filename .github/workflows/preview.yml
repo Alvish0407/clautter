@@ -1,28 +1,20 @@
 name: Deploy Branch Preview
 
 on:
-  pull_request:
-    types: [opened, synchronize, reopened]
   push:
     branches-ignore: [main]
   workflow_dispatch:
 
 permissions:
   contents: write
-  pull-requests: write
-  pages: write
-  id-token: write
 
 concurrency:
-  group: preview-${{ github.head_ref || github.ref_name }}
+  group: preview-${{ github.ref_name }}
   cancel-in-progress: true
 
 jobs:
   build-and-deploy-preview:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -33,9 +25,7 @@ jobs:
       - name: Determine branch name
         id: branch
         run: |
-          # Use head_ref for PRs, ref_name for direct pushes
-          BRANCH="${{ github.head_ref || github.ref_name }}"
-          # Sanitize branch name for use as a directory (replace / with -)
+          BRANCH="${{ github.ref_name }}"
           SAFE_BRANCH=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9._-]/-/g')
           echo "name=$SAFE_BRANCH" >> "$GITHUB_OUTPUT"
           echo "raw=$BRANCH" >> "$GITHUB_OUTPUT"
@@ -45,45 +35,31 @@ jobs:
       - name: Build web for preview
         run: flutter build web --release --base-href "/clautter/"
 
-      - name: Upload Pages artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: build/web
+      - name: Deploy to gh-pages branch
+        run: |
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
 
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          # Save the build output
+          cp -r build/web /tmp/preview-build
 
-      - name: Comment preview URL on PR
-        if: github.event_name == 'pull_request'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const previewUrl = `${{ steps.deployment.outputs.page_url }}`;
-            const body = `## Preview Deployment\n\nThis PR has been deployed for preview:\n\n**[Open Preview](${previewUrl})**\n\n_Updated for commit ${context.sha.substring(0, 7)}_`;
+          # Try to fetch the existing gh-pages branch
+          if git fetch origin gh-pages 2>/dev/null; then
+            git checkout gh-pages
+          else
+            # gh-pages doesn't exist yet — create an orphan branch
+            git checkout --orphan gh-pages
+            git rm -rf .
+            git commit --allow-empty -m "Initialize gh-pages branch"
+          fi
 
-            // Find existing bot comment
-            const { data: comments } = await github.rest.issues.listComments({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              issue_number: context.issue.number,
-            });
-            const botComment = comments.find(c =>
-              c.user.type === 'Bot' && c.body.includes('Preview Deployment')
-            );
+          # Replace all content with the new build
+          # (clean everything except .git)
+          git rm -rf . 2>/dev/null || true
+          cp -r /tmp/preview-build/* .
 
-            if (botComment) {
-              await github.rest.issues.updateComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                comment_id: botComment.id,
-                body,
-              });
-            } else {
-              await github.rest.issues.createComment({
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                issue_number: context.issue.number,
-                body,
-              });
-            }
+          # Commit and push
+          git add -A
+          git commit -m "Deploy preview for ${{ steps.branch.outputs.raw }}" --allow-empty
+          git push origin gh-pages
