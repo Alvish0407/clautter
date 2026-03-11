@@ -44,6 +44,10 @@ jobs:
           # Save the build output
           cp -r build/web /tmp/preview-build
 
+          # Clean any working tree changes (e.g. pubspec.lock from flutter pub get)
+          git checkout -- . 2>/dev/null || true
+          git clean -fd 2>/dev/null || true
+
           # Try to fetch the existing gh-pages branch
           if git fetch origin gh-pages 2>/dev/null; then
             git checkout gh-pages
