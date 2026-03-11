@@ -10,6 +10,8 @@ on:
 permissions:
   contents: write
   pull-requests: write
+  pages: write
+  id-token: write
 
 concurrency:
   group: preview-${{ github.head_ref || github.ref_name }}
@@ -18,6 +20,9 @@ concurrency:
 jobs:
   build-and-deploy-preview:
     runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
 
@@ -38,45 +43,23 @@ jobs:
       - run: flutter pub get
 
       - name: Build web for preview
-        run: flutter build web --release --base-href "/clautter/preview/${{ steps.branch.outputs.name }}/"
+        run: flutter build web --release --base-href "/clautter/"
 
-      - name: Deploy to gh-pages branch (preview subdirectory)
-        run: |
-          PREVIEW_DIR="preview/${{ steps.branch.outputs.name }}"
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build/web
 
-          # Configure git
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-
-          # Save the build output
-          cp -r build/web /tmp/preview-build
-
-          # Try to fetch the existing gh-pages branch
-          if git fetch origin gh-pages 2>/dev/null; then
-            git checkout gh-pages
-          else
-            # gh-pages doesn't exist yet — create an orphan branch
-            git checkout --orphan gh-pages
-            git rm -rf .
-            git commit --allow-empty -m "Initialize gh-pages branch"
-          fi
-
-          # Create/update the preview subdirectory
-          rm -rf "$PREVIEW_DIR"
-          mkdir -p "$PREVIEW_DIR"
-          cp -r /tmp/preview-build/* "$PREVIEW_DIR/"
-
-          # Commit and push
-          git add "$PREVIEW_DIR"
-          git commit -m "Deploy preview for ${{ steps.branch.outputs.raw }}" --allow-empty
-          git push origin gh-pages
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
 
       - name: Comment preview URL on PR
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v7
         with:
           script: |
-            const previewUrl = `https://${context.repo.owner}.github.io/clautter/preview/${{ steps.branch.outputs.name }}/`;
+            const previewUrl = `${{ steps.deployment.outputs.page_url }}`;
             const body = `## Preview Deployment\n\nThis PR has been deployed for preview:\n\n**[Open Preview](${previewUrl})**\n\n_Updated for commit ${context.sha.substring(0, 7)}_`;
 
             // Find existing bot comment
@@ -104,25 +87,3 @@ jobs:
                 body,
               });
             }
-
-  cleanup-preview:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: gh-pages
-
-      - name: Remove preview directory
-        run: |
-          BRANCH="${{ github.head_ref }}"
-          SAFE_BRANCH=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9._-]/-/g')
-          PREVIEW_DIR="preview/$SAFE_BRANCH"
-
-          if [ -d "$PREVIEW_DIR" ]; then
-            git config user.name "github-actions[bot]"
-            git config user.email "github-actions[bot]@users.noreply.github.com"
-            git rm -rf "$PREVIEW_DIR"
-            git commit -m "Clean up preview for $BRANCH"
-            git push origin gh-pages
-          fi
