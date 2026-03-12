@@ -1,0 +1,61 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - run: flutter pub get
+      - run: flutter build web --release --base-href "/clautter/"
+
+      - name: Deploy to gh-pages (root)
+        run: |
+          # Save the build output
+          cp -r build/web /tmp/prod-build
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Clean working tree
+          git checkout -- . 2>/dev/null || true
+          git clean -fd 2>/dev/null || true
+
+          # Fetch or create gh-pages branch
+          if git fetch origin gh-pages 2>/dev/null; then
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            git rm -rf .
+            git commit --allow-empty -m "Initialize gh-pages branch"
+          fi
+
+          # Remove everything EXCEPT the preview/ directory and .git
+          find . -maxdepth 1 \
+            ! -name '.' \
+            ! -name '.git' \
+            ! -name 'preview' \
+            -exec rm -rf {} +
+
+          # Copy production build into root
+          cp -r /tmp/prod-build/* .
+
+          git add -A
+          git diff --cached --quiet || git commit -m "Deploy production from main@${{ github.sha }}"
+          git push origin gh-pages

@@ -1,0 +1,76 @@
+name: Deploy Branch Preview
+
+on:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: preview-${{ github.ref_name }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy-preview:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+
+      - name: Determine safe branch name
+        id: branch
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          SAFE_BRANCH=$(echo "$BRANCH" | sed 's/[^a-zA-Z0-9._-]/-/g')
+          echo "name=$SAFE_BRANCH" >> "$GITHUB_OUTPUT"
+          echo "raw=$BRANCH" >> "$GITHUB_OUTPUT"
+
+      - run: flutter pub get
+
+      - name: Build web for preview
+        run: flutter build web --release --base-href "/clautter/preview/${{ steps.branch.outputs.name }}/"
+
+      - name: Deploy to gh-pages/preview/<branch>
+        run: |
+          PREVIEW_DIR="preview/${{ steps.branch.outputs.name }}"
+
+          # Save the build output
+          cp -r build/web /tmp/preview-build
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Clean working tree
+          git checkout -- . 2>/dev/null || true
+          git clean -fd 2>/dev/null || true
+
+          # Fetch or create gh-pages branch
+          if git fetch origin gh-pages 2>/dev/null; then
+            git checkout gh-pages
+          else
+            git checkout --orphan gh-pages
+            git rm -rf .
+            git commit --allow-empty -m "Initialize gh-pages branch"
+          fi
+
+          # Replace only this branch's preview directory
+          rm -rf "$PREVIEW_DIR"
+          mkdir -p "$PREVIEW_DIR"
+          cp -r /tmp/preview-build/* "$PREVIEW_DIR/"
+
+          git add -A
+          git diff --cached --quiet || git commit -m "Deploy preview for ${{ steps.branch.outputs.raw }}"
+          git push origin gh-pages
+
+      - name: Post preview URL
+        run: |
+          REPO="${{ github.repository }}"
+          OWNER=$(echo "$REPO" | cut -d'/' -f1)
+          PREVIEW_DIR="preview/${{ steps.branch.outputs.name }}"
+          echo "### Preview deployed"
+          echo "https://${OWNER}.github.io/clautter/${PREVIEW_DIR}/"
