@@ -1,20 +1,23 @@
 import 'package:flutter/material.dart';
+import 'screens/home_screen.dart';
 
 void main() {
-  runApp(const MainApp());
+  runApp(const ClautterApp());
 }
 
-class MainApp extends StatelessWidget {
-  const MainApp({super.key});
+class ClautterApp extends StatelessWidget {
+  const ClautterApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return const MaterialApp(
-      home: Scaffold(
-        body: Center(
-          child: Text('Hello World!'),
-        ),
+    return MaterialApp(
+      title: 'Clautter',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        fontFamily: 'SF Pro Display',
       ),
+      home: const HomeScreen(),
     );
   }
 }
