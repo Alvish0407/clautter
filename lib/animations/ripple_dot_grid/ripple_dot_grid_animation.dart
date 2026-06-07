@@ -19,23 +19,21 @@ const double _kDotRadius = 1.8;
 const double _kRepelRadius = 32.0;
 
 /// Base repulsion acceleration (px/s²) — applied when the cursor is still.
-const double _kRepelStrength = 80000.0;
+const double _kRepelStrength = 42000.0;
 
 /// Cursor speed (px/s) at which the velocity boost reaches its maximum.
-const double _kBoostThreshold = 700.0;
+const double _kBoostThreshold = 500.0;
 
 /// Maximum additional repulsion multiplier from cursor velocity.
-/// e.g. 4.0 means fast swipes throw dots up to 5× harder than a still press.
-const double _kMaxVelocityBoost = 4.0;
+/// e.g. 1.0 means fast swipes throw dots up to 2× harder than a still press.
+const double _kMaxVelocityBoost = 1.0;
 
 /// Spring stiffness (px/s² per px). Higher = snappier return.
-/// With damping below 2·√k the system is underdamped — dots overshoot
-/// slightly then settle, which reads as natural/alive.
-const double _kSpring = 90.0;
+const double _kSpring = 70.0;
 
-/// Velocity damping per second. 16 < 2·√90 ≈ 19 → underdamped (slight
-/// overshoot on return gives a satisfying physical snap-back).
-const double _kDamping = 16.0;
+/// Velocity damping per second. 17 > 2·√70 ≈ 16.7 → slightly overdamped:
+/// clean, smooth return to home with no oscillation.
+const double _kDamping = 17.0;
 
 // ──────────────────────────────────────────────────────────────────────────────
 
@@ -182,12 +180,14 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
         final dist = sqrt(dx * dx + dy * dy);
         if (dist > 0 && dist < _kRepelRadius) {
           final t = 1.0 - dist / _kRepelRadius;
+          // Smoothstep falloff: zero-derivative at both ends → no abrupt edge.
+          final smooth = t * t * (3.0 - 2.0 * t);
 
-          // Velocity boost: faster cursor = stronger throw.
+          // Velocity boost: faster cursor = slightly stronger throw.
           final speed = inputVel.distance;
           final boost = 1.0 + (speed / _kBoostThreshold).clamp(0.0, _kMaxVelocityBoost);
 
-          final mag = boost * t * t * _kRepelStrength / dist;
+          final mag = boost * smooth * _kRepelStrength / dist;
           fx += dx * mag;
           fy += dy * mag;
         }
