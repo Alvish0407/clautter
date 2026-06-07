@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 
 import 'models/dot_particle.dart';
 import 'painters/ripple_painter.dart';
@@ -47,8 +48,7 @@ class RippleDotGridAnimation extends StatefulWidget {
   const RippleDotGridAnimation({super.key});
 
   @override
-  State<RippleDotGridAnimation> createState() =>
-      _RippleDotGridAnimationState();
+  State<RippleDotGridAnimation> createState() => _RippleDotGridAnimationState();
 }
 
 class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
@@ -96,9 +96,7 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
     _dots = [
       for (int r = 0; r < rows; r++)
         for (int c = 0; c < cols; c++)
-          DotParticle(
-            Offset(startX + c * _kGridSpacing, startY + r * _kGridSpacing),
-          ),
+          DotParticle(Offset(startX + c * _kGridSpacing, startY + r * _kGridSpacing)),
     ];
     _allAtRest = true;
   }
@@ -126,10 +124,7 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
       var fy = 0.0;
 
       // Repulsion from every active input (touch, mouse drag, mouse hover).
-      final allInputs = [
-        ..._pointers.values,
-        if (_mouseHover != null) _mouseHover!,
-      ];
+      final allInputs = [..._pointers.values, ?_mouseHover];
       for (final touch in allInputs) {
         final dx = dot.pos.dx - touch.dx;
         final dy = dot.pos.dy - touch.dy;
