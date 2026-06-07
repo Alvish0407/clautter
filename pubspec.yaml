@@ -1,5 +1,5 @@
 name: clautter
-description: "A new Flutter project."
+description: A curated, open-source collection of Flutter animations — structured for readability, documented for understanding, and built for web embedding.
 publish_to: 'none'
 version: 0.1.0
 
