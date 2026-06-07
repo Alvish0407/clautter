@@ -124,8 +124,13 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
         : min((elapsed - _lastTime).inMicroseconds / 1e6, 1 / 15);
     _lastTime = elapsed;
 
+    // Snapshot previous positions BEFORE _updateInputVelocities overwrites them.
+    // These are used to sweep the cursor path and fill gaps on fast movement.
+    final prevPtrs = Map<int, Offset>.from(_prevPointers);
+    final prevHover = _prevMouseHover;
+
     _updateInputVelocities(dt);
-    _simulate(dt);
+    _simulate(dt, prevPtrs, prevHover);
     setState(() {});
   }
 
@@ -161,11 +166,18 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
 
   // ─── Physics ───────────────────────────────────────────────────────────────
 
-  void _simulate(double dt) {
-    // Build the list of (position, velocity) pairs for all active inputs.
-    final inputs = <(Offset, Offset)>[
-      for (final id in _pointers.keys) (_pointers[id]!, _pointerVels[id] ?? Offset.zero),
-      if (_mouseHover != null) (_mouseHover!, _mouseHoverVel),
+  void _simulate(double dt, Map<int, Offset> prevPtrs, Offset? prevHover) {
+    // Build (currentPos, prevPos, velocity) for every active input.
+    // prevPos lets us sweep the cursor path so fast movement leaves no gaps.
+    final inputs = <(Offset, Offset, Offset)>[
+      for (final id in _pointers.keys)
+        (
+          _pointers[id]!,
+          prevPtrs[id] ?? _pointers[id]!,
+          _pointerVels[id] ?? Offset.zero,
+        ),
+      if (_mouseHover != null)
+        (_mouseHover!, prevHover ?? _mouseHover!, _mouseHoverVel),
     ];
 
     bool anyMoving = false;
@@ -174,22 +186,33 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
       var fx = 0.0;
       var fy = 0.0;
 
-      for (final (touch, inputVel) in inputs) {
-        final dx = dot.pos.dx - touch.dx;
-        final dy = dot.pos.dy - touch.dy;
-        final dist = sqrt(dx * dx + dy * dy);
-        if (dist > 0 && dist < _kRepelRadius) {
-          final t = 1.0 - dist / _kRepelRadius;
-          // Smoothstep falloff: zero-derivative at both ends → no abrupt edge.
-          final smooth = t * t * (3.0 - 2.0 * t);
+      for (final (cur, prev, inputVel) in inputs) {
+        final delta = cur - prev;
+        final pathLen = delta.distance;
 
-          // Velocity boost: faster cursor = slightly stronger throw.
-          final speed = inputVel.distance;
-          final boost = 1.0 + (speed / _kBoostThreshold).clamp(0.0, _kMaxVelocityBoost);
+        // Sample the cursor path every 75 % of the repel radius so no dot
+        // is skipped even during fast swipes.
+        final numSamples = max(1, (pathLen / (_kRepelRadius * 0.75)).ceil());
 
-          final mag = boost * smooth * _kRepelStrength / dist;
-          fx += dx * mag;
-          fy += dy * mag;
+        final speed = inputVel.distance;
+        final boost = 1.0 + (speed / _kBoostThreshold).clamp(0.0, _kMaxVelocityBoost);
+
+        for (int s = 0; s < numSamples; s++) {
+          final frac = numSamples == 1 ? 1.0 : s / (numSamples - 1).toDouble();
+          final sample = prev + delta * frac;
+
+          final dx = dot.pos.dx - sample.dx;
+          final dy = dot.pos.dy - sample.dy;
+          final dist = sqrt(dx * dx + dy * dy);
+          if (dist > 0 && dist < _kRepelRadius) {
+            final t = 1.0 - dist / _kRepelRadius;
+            // Smoothstep falloff: zero-derivative at both ends.
+            final smooth = t * t * (3.0 - 2.0 * t);
+            // Divide by numSamples so total impulse is speed-independent.
+            final mag = boost * smooth * _kRepelStrength / dist / numSamples;
+            fx += dx * mag;
+            fy += dy * mag;
+          }
         }
       }
 
