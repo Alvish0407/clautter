@@ -20,16 +20,16 @@ const double _kRepelRadius = 32.0;
 
 /// Peak repulsion acceleration (px/s²) at zero distance.
 /// High value = dots snap away instantly on touch.
-const double _kRepelStrength = 55000.0;
+const double _kRepelStrength = 120000.0;
 
 /// Spring stiffness constant (px/s² per px of displacement).
 /// Low value = slow, lazy return to home.
-const double _kSpring = 35.0;
+const double _kSpring = 15.0;
 
 /// Linear velocity damping factor per second.
 /// Value > 2·√k keeps the return overdamped (no bounce, speed decreases
 /// smoothly all the way back).
-const double _kDamping = 18.0;
+const double _kDamping = 22.0;
 
 // ──────────────────────────────────────────────────────────────────────────────
 
