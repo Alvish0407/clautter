@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+#
+# Rebuild the embeddable Flutter web bundle into website/public/embeds/clautter.
+#
+# Run from anywhere; paths are resolved relative to this script.
+#
+# Why we delete canvaskit/ afterwards:
+#   `flutter build web` (dart2js + CanvasKit renderer) always ships a full local
+#   CanvasKit distribution (~38 MB) as an *offline fallback* — base canvaskit +
+#   chromium variant + skwasm + skwasm_heavy + wimp + experimental_webparagraph.
+#   At runtime, with the default config (useLocalCanvasKit = false), the engine
+#   loads CanvasKit from the gstatic CDN instead and never touches the local
+#   folder. Verified via a headless-Chrome net-log: 10 requests to
+#   https://www.gstatic.com/flutter-canvaskit/, 0 to the local copy.
+#   So the whole folder is dead weight and we drop it — taking the embed from
+#   ~42 MB to ~5 MB. (Trade-off: the embed then needs network to fetch CanvasKit,
+#   which is fine for a hosted website and was already the default behaviour.)
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+EMBED_DIR="$REPO_ROOT/website/public/embeds/clautter"
+
+cd "$REPO_ROOT"
+echo "› flutter build web (base-href /embeds/clautter/)…"
+flutter build web --release --base-href /embeds/clautter/
+
+echo "› copying build → website/public/embeds/clautter…"
+rm -rf "$EMBED_DIR"
+mkdir -p "$REPO_ROOT/website/public/embeds"
+cp -R "$REPO_ROOT/build/web" "$EMBED_DIR"
+
+echo "› stripping unused local CanvasKit (loaded from gstatic CDN at runtime)…"
+rm -rf "$EMBED_DIR/canvaskit"
+
+echo "✓ embed rebuilt: $(du -sh "$EMBED_DIR" | cut -f1)"
