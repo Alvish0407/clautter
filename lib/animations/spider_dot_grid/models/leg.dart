@@ -23,11 +23,11 @@ class Leg {
   double stepProgress;
 
   Leg({required this.footPosition})
-      : footTarget = footPosition,
-        footOrigin = footPosition,
-        hipPoint = Offset.zero,
-        kneePoint = Offset.zero,
-        stepProgress = 1.0;
+    : footTarget = footPosition,
+      footOrigin = footPosition,
+      hipPoint = Offset.zero,
+      kneePoint = Offset.zero,
+      stepProgress = 1.0;
 
   bool get isStepping => stepProgress < 1.0;
 

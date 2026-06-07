@@ -48,10 +48,10 @@ const List<double> kLegRestAngles = [
   -1.9, // Leg 1: ~NNW
   -1.2, // Leg 2: ~NNE
   -0.6, // Leg 3: ~NE
-   0.6, // Leg 4: ~SE
-   1.2, // Leg 5: ~SSE
-   1.9, // Leg 6: ~SSW
-   2.5, // Leg 7: ~SW
+  0.6, // Leg 4: ~SE
+  1.2, // Leg 5: ~SSE
+  1.9, // Leg 6: ~SSW
+  2.5, // Leg 7: ~SW
 ];
 
 /// Which body plate each leg attaches to: 0 = N, 1 = E, 2 = S, 3 = W.
@@ -60,12 +60,12 @@ const List<int> kLegPlateIndex = [3, 0, 0, 1, 1, 2, 2, 3];
 /// Knee bend direction per leg.
 /// true = bend left (CCW from hip→foot), false = bend right (CW).
 const List<bool> kLegBendLeft = [
-  true,  // 0
-  true,  // 1
+  true, // 0
+  true, // 1
   false, // 2
   false, // 3
-  true,  // 4
-  true,  // 5
+  true, // 4
+  true, // 5
   false, // 6
   false, // 7
 ];

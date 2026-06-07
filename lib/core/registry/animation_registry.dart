@@ -1,8 +1,7 @@
-import 'package:flutter/material.dart';
-import '../models/animation_meta.dart';
 import '../../animations/morphing_sphere/morphing_sphere_animation.dart';
-import '../../animations/spider_dot_grid/spider_dot_grid_animation.dart';
 import '../../animations/spider_dot_grid/models/spider_config.dart';
+import '../../animations/spider_dot_grid/spider_dot_grid_animation.dart';
+import '../models/animation_meta.dart';
 
 /// The single source of truth for every animation in Clautter.
 ///

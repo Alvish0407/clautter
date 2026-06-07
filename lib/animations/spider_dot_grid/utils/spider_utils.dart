@@ -49,8 +49,8 @@ Offset snapToGrid(Offset position, double gridSpacing) {
 List<Offset> getPlateOffsets() {
   return const [
     Offset(0, -kBodyPlateOffset), // N
-    Offset(kBodyPlateOffset, 0),  // E
-    Offset(0, kBodyPlateOffset),  // S
+    Offset(kBodyPlateOffset, 0), // E
+    Offset(0, kBodyPlateOffset), // S
     Offset(-kBodyPlateOffset, 0), // W
   ];
 }

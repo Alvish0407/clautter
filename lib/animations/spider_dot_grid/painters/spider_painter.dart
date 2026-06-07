@@ -61,9 +61,10 @@ class SpiderPainter extends CustomPainter {
     for (final leg in legs) {
       canvas.drawRect(
         Rect.fromCenter(
-            center: leg.kneePoint,
-            width: kKneeJointSize,
-            height: kKneeJointSize),
+          center: leg.kneePoint,
+          width: kKneeJointSize,
+          height: kKneeJointSize,
+        ),
         _kneePaint,
       );
     }
@@ -72,7 +73,10 @@ class SpiderPainter extends CustomPainter {
     for (final leg in legs) {
       canvas.drawRect(
         Rect.fromCenter(
-            center: leg.footPosition, width: kFootSize, height: kFootSize),
+          center: leg.footPosition,
+          width: kFootSize,
+          height: kFootSize,
+        ),
         _footPaint,
       );
     }
@@ -81,9 +85,10 @@ class SpiderPainter extends CustomPainter {
     for (final offset in plateOffsets) {
       canvas.drawRect(
         Rect.fromCenter(
-            center: bodyPosition + offset,
-            width: kBodyPlateSize,
-            height: kBodyPlateSize),
+          center: bodyPosition + offset,
+          width: kBodyPlateSize,
+          height: kBodyPlateSize,
+        ),
         _bodyPaint,
       );
     }
@@ -91,7 +96,10 @@ class SpiderPainter extends CustomPainter {
     // 6. Body core
     canvas.drawRect(
       Rect.fromCenter(
-          center: bodyPosition, width: kBodyWidth, height: kBodyHeight),
+        center: bodyPosition,
+        width: kBodyWidth,
+        height: kBodyHeight,
+      ),
       _bodyPaint,
     );
   }

@@ -10,10 +10,7 @@ abstract final class AppTheme {
   static const Color accent = Color(0xFFFFFFFF);
 
   static ThemeData get dark => ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: background,
-        colorScheme: const ColorScheme.dark(
-          surface: surface,
-          onSurface: onSurface,
-        ),
-      );
+    scaffoldBackgroundColor: background,
+    colorScheme: const ColorScheme.dark(surface: surface, onSurface: onSurface),
+  );
 }

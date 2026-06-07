@@ -23,10 +23,14 @@ class MorphControls extends StatelessWidget {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: const [
-              Text('Chaos',
-                  style: TextStyle(color: Colors.white38, fontSize: 11)),
-              Text('Sphere',
-                  style: TextStyle(color: Colors.white38, fontSize: 11)),
+              Text(
+                'Chaos',
+                style: TextStyle(color: Colors.white38, fontSize: 11),
+              ),
+              Text(
+                'Sphere',
+                style: TextStyle(color: Colors.white38, fontSize: 11),
+              ),
             ],
           ),
           const SizedBox(height: 2),

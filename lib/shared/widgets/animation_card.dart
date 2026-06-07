@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../../core/models/animation_meta.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -7,11 +8,7 @@ class AnimationCard extends StatelessWidget {
   final AnimationMeta meta;
   final VoidCallback onTap;
 
-  const AnimationCard({
-    super.key,
-    required this.meta,
-    required this.onTap,
-  });
+  const AnimationCard({super.key, required this.meta, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
@@ -39,8 +36,11 @@ class AnimationCard extends StatelessWidget {
                     ),
                   ),
                 ),
-                const Icon(Icons.arrow_forward_ios,
-                    color: AppTheme.onSurfaceMuted, size: 14),
+                const Icon(
+                  Icons.arrow_forward_ios,
+                  color: AppTheme.onSurfaceMuted,
+                  size: 14,
+                ),
               ],
             ),
             const SizedBox(height: 8),
@@ -60,7 +60,9 @@ class AnimationCard extends StatelessWidget {
                   .map(
                     (tag) => Container(
                       padding: const EdgeInsets.symmetric(
-                          horizontal: 10, vertical: 4),
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
                       decoration: BoxDecoration(
                         color: AppTheme.surfaceVariant,
                         borderRadius: BorderRadius.circular(20),
@@ -68,7 +70,9 @@ class AnimationCard extends StatelessWidget {
                       child: Text(
                         tag,
                         style: const TextStyle(
-                            color: AppTheme.onSurfaceMuted, fontSize: 11),
+                          color: AppTheme.onSurfaceMuted,
+                          fontSize: 11,
+                        ),
                       ),
                     ),
                   )

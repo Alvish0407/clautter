@@ -1,5 +1,7 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+
 import '../models/dot.dart';
 
 /// Projected 2D representation of a single dot after 3D → screen transform.
@@ -112,13 +114,15 @@ class SpherePainter extends CustomPainter {
       // Perspective divide: closer dots appear larger.
       final p = 300.0 / (300.0 + rz);
       scaledYs[i] = scaledY;
-      projected.add(_DotData(
-        screenX: rx * p,
-        screenY: scaledY * p,
-        rotatedZ: rz,
-        dotSize: max(1.0, 3.0 * p),
-        color: Colors.white, // placeholder, set in phase 2
-      ));
+      projected.add(
+        _DotData(
+          screenX: rx * p,
+          screenY: scaledY * p,
+          rotatedZ: rz,
+          dotSize: max(1.0, 3.0 * p),
+          color: Colors.white, // placeholder, set in phase 2
+        ),
+      );
     }
 
     // ── Phase 2: assign wave colours ─────────────────────────────────────
@@ -133,13 +137,15 @@ class SpherePainter extends CustomPainter {
       // Each dot's wave starts with a delay proportional to its Y position.
       final delay = normY * _fadeDuration;
       final progress = ((timeInCycle - delay) / _fadeDuration).clamp(0.0, 1.0);
-      coloured.add(_DotData(
-        screenX: d.screenX,
-        screenY: d.screenY,
-        rotatedZ: d.rotatedZ,
-        dotSize: d.dotSize,
-        color: blendColor(baseColor, nextColor, progress),
-      ));
+      coloured.add(
+        _DotData(
+          screenX: d.screenX,
+          screenY: d.screenY,
+          rotatedZ: d.rotatedZ,
+          dotSize: d.dotSize,
+          color: blendColor(baseColor, nextColor, progress),
+        ),
+      );
     }
 
     // ── Phase 3: painter's algorithm — back-to-front sort, then draw ─────
@@ -147,7 +153,7 @@ class SpherePainter extends CustomPainter {
 
     final paint = Paint()..style = PaintingStyle.fill;
     for (final d in coloured) {
-      paint.color = d.color.withOpacity(0.85);
+      paint.color = d.color.withValues(alpha: 0.85);
       canvas.drawCircle(
         Offset(cx + d.screenX, cy + d.screenY),
         d.dotSize / 2,

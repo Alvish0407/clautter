@@ -10,9 +10,9 @@ class GalleryScreen extends StatelessWidget {
   const GalleryScreen({super.key});
 
   void _open(BuildContext context, AnimationMeta meta) {
-    Navigator.of(context).push(
-      MaterialPageRoute(builder: (_) => AnimationViewer(meta: meta)),
-    );
+    Navigator.of(
+      context,
+    ).push(MaterialPageRoute(builder: (_) => AnimationViewer(meta: meta)));
   }
 
   @override

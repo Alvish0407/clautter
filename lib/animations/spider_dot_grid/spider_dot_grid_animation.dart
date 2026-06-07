@@ -1,6 +1,9 @@
 import 'dart:math';
 import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
 import 'models/leg.dart';
 import 'models/spider_config.dart';
 import 'painters/spider_painter.dart';
@@ -67,8 +70,8 @@ class _SpiderDotGridAnimationState extends State<SpiderDotGridAnimation>
     _gridSpacing = cols < 12
         ? size.width / 12.0
         : cols > 16
-            ? size.width / 16.0
-            : 50.0;
+        ? size.width / 16.0
+        : 50.0;
 
     final center = Offset(size.width / 2, size.height / 2);
     _bodyPosition = center;

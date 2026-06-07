@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../core/models/animation_meta.dart';
 import '../core/theme/app_theme.dart';
 
@@ -22,7 +23,8 @@ class AnimationViewer extends StatelessWidget {
         elevation: 0,
         iconTheme: IconThemeData(
           // Use a dark icon on light backgrounds, white on dark.
-          color: ThemeData.estimateBrightnessForColor(meta.backgroundColor) ==
+          color:
+              ThemeData.estimateBrightnessForColor(meta.backgroundColor) ==
                   Brightness.light
               ? Colors.black87
               : AppTheme.accent,
@@ -30,7 +32,8 @@ class AnimationViewer extends StatelessWidget {
         title: Text(
           meta.title,
           style: TextStyle(
-            color: ThemeData.estimateBrightnessForColor(meta.backgroundColor) ==
+            color:
+                ThemeData.estimateBrightnessForColor(meta.backgroundColor) ==
                     Brightness.light
                 ? Colors.black87
                 : AppTheme.accent,

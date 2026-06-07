@@ -16,7 +16,8 @@ class MorphingSphereAnimation extends StatefulWidget {
   const MorphingSphereAnimation({super.key});
 
   @override
-  State<MorphingSphereAnimation> createState() => _MorphingSphereAnimationState();
+  State<MorphingSphereAnimation> createState() =>
+      _MorphingSphereAnimationState();
 }
 
 class _MorphingSphereAnimationState extends State<MorphingSphereAnimation>
@@ -61,7 +62,11 @@ class _MorphingSphereAnimationState extends State<MorphingSphereAnimation>
           child: LayoutBuilder(
             builder: (_, constraints) => CustomPaint(
               size: Size(constraints.maxWidth, constraints.maxHeight),
-              painter: SpherePainter(dots: _dots, time: _time, morphAmount: _morphAmount),
+              painter: SpherePainter(
+                dots: _dots,
+                time: _time,
+                morphAmount: _morphAmount,
+              ),
             ),
           ),
         ),
