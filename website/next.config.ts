@@ -1,9 +1,9 @@
 import type { NextConfig } from "next";
 
-// Served from a GitHub Pages project site. In production the base path is
-// /clautter; branch previews override it via NEXT_PUBLIC_BASE_PATH (e.g.
-// /clautter/preview/<branch>). Keep this in sync with src/lib/site.ts.
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "/clautter";
+// Served from a custom subdomain (clautter.alvish.in) at the root; branch
+// previews override via NEXT_PUBLIC_BASE_PATH (e.g. /preview/<branch>).
+// Keep this in sync with src/lib/site.ts.
+const basePath = process.env.NEXT_PUBLIC_BASE_PATH || "";
 
 const nextConfig: NextConfig = {
   output: "export", // static HTML export → out/, deployable to GitHub Pages
