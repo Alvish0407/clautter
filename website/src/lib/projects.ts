@@ -1,3 +1,5 @@
+import { asset } from "./site";
+
 export type Project = {
   /** URL slug + Flutter registry id used for the embed deep-link. */
   id: string;
@@ -35,7 +37,7 @@ export const projects: Project[] = [
       "Painter's algorithm",
       "Staggered colour blending",
     ],
-    video: "/previews/morphing_sphere.mp4",
+    video: asset("/previews/morphing_sphere.mp4"),
     previewBg: "#000000",
     dark: true,
   },
@@ -55,9 +57,29 @@ export const projects: Project[] = [
       "Cached grid rasterisation (ui.Image)",
       "Pointer events (Listener + MouseRegion)",
     ],
-    video: "/previews/spider_dot_grid.mp4",
+    video: asset("/previews/spider_dot_grid.mp4"),
     previewBg: "#f5f5f5",
     dark: false,
+  },
+  {
+    id: "ripple_dot_grid",
+    title: "Ripple Dot Grid",
+    blurb:
+      "A whole screen of dots. Touch or drag and they scatter out of the way, then bounce back into place with a springy little wobble.",
+    description:
+      "The screen fills with a tight grid of dots. Drag or tap anywhere and the dots near your pointer get shoved out of the way, then spring back home with a bouncy, damped wobble. It handles several touches at once, so every finger sets off its own ripple.",
+    tags: ["Physics", "Interactive", "CustomPaint", "Multi-touch"],
+    techniques: [
+      "Spring-mass physics",
+      "Semi-implicit Euler integration",
+      "Radial repulsion",
+      "Damped oscillation",
+      "Multi-pointer input (Listener)",
+      "Idle-skip optimisation",
+    ],
+    video: asset("/previews/ripple_dot_grid.mp4"),
+    previewBg: "#000000",
+    dark: true,
   },
 ];
 
@@ -67,5 +89,5 @@ export function getProject(id: string): Project | undefined {
 
 /** Deep-link into the embedded Flutter build for a single animation. */
 export function embedUrl(id: string): string {
-  return `/embeds/clautter/index.html?animation=${encodeURIComponent(id)}`;
+  return asset(`/embeds/clautter/index.html?animation=${encodeURIComponent(id)}`);
 }
