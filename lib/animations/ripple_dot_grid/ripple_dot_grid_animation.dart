@@ -19,7 +19,7 @@ const double _kDotRadius = 1.8;
 const double _kRepelRadius = 32.0;
 
 /// Base repulsion acceleration (px/s²) — applied when the cursor is still.
-const double _kRepelStrength = 42000.0;
+const double _kRepelStrength = 22000.0;
 
 /// Cursor speed (px/s) at which the velocity boost reaches its maximum.
 const double _kBoostThreshold = 500.0;
@@ -29,11 +29,11 @@ const double _kBoostThreshold = 500.0;
 const double _kMaxVelocityBoost = 1.0;
 
 /// Spring stiffness (px/s² per px). Higher = snappier return.
-const double _kSpring = 70.0;
+const double _kSpring = 28.0;
 
-/// Velocity damping per second. 17 > 2·√70 ≈ 16.7 → slightly overdamped:
-/// clean, smooth return to home with no oscillation.
-const double _kDamping = 17.0;
+/// Velocity damping per second. 13 > 2·√28 ≈ 10.6 → overdamped:
+/// slow, smooth drift back with no oscillation.
+const double _kDamping = 13.0;
 
 // ──────────────────────────────────────────────────────────────────────────────
 
