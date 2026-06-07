@@ -33,4 +33,11 @@ cp -R "$REPO_ROOT/build/web" "$EMBED_DIR"
 echo "› stripping unused local CanvasKit (loaded from gstatic CDN at runtime)…"
 rm -rf "$EMBED_DIR/canvaskit"
 
+# The embed is only ever loaded with ?animation=<id>, which boots straight into a
+# single animation — never the gallery/video-preview cards. So the preview clips
+# bundled into the Flutter build are never requested here (the website serves its
+# own copies from public/previews/ for the cards). Drop them (~2 MB).
+echo "› stripping unused preview videos from embed assets…"
+rm -rf "$EMBED_DIR/assets/assets/previews"
+
 echo "✓ embed rebuilt: $(du -sh "$EMBED_DIR" | cut -f1)"
