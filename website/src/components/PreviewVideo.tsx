@@ -20,7 +20,7 @@ export default function PreviewVideo({ src, className }: Props) {
     if (!el) return;
     el.muted = true;
     el.play().catch(() => {
-      /* autoplay may be blocked until interaction — harmless */
+      /* autoplay may be blocked until interaction, which is harmless */
     });
   }, []);
 

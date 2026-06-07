@@ -1,11 +1,11 @@
 @import "tailwindcss";
 
 /*
-  Clautter design system — neo-brutalist (inspired by qr-done) recoloured with
-  the Claude + Flutter brands.
-    Claude  → warm cream canvas + coral accent
-    Flutter → blue accent
-  Bold display type · 2px ink borders · hard offset shadows · 6px grid.
+  Clautter design system. Neo-brutalist (inspired by qr-done), recoloured with
+  the Claude and Flutter brands.
+    Claude:  warm cream canvas + coral accent
+    Flutter: blue accent
+  Bold display type, 2px ink borders, hard offset shadows, 6px grid.
 */
 @theme {
   --color-bg: #f0eee6; /* Claude cream */
@@ -14,9 +14,9 @@
   --color-muted: #5f5b54;
   --color-faint: #8a857c;
 
-  --color-flutter: #027dfd; /* Flutter blue — primary accent */
+  --color-flutter: #027dfd; /* Flutter blue, primary accent */
   --color-flutter-light: #54c5f8;
-  --color-claude: #d97757; /* Claude coral — secondary accent */
+  --color-claude: #d97757; /* Claude coral, secondary accent */
   --color-accent: #027dfd;
   --color-accent-ink: #ffffff;
 
@@ -26,7 +26,7 @@
   --radius-btn: 12px;
   --radius-chip: 10px;
 
-  /* Hard offset shadows (no blur) — the signature of this system. */
+  /* Hard offset shadows (no blur), the signature of this system. */
   --shadow-hard-sm: 2px 2px 0 0 #151617;
   --shadow-hard: 4px 4px 0 0 #151617;
   --shadow-hard-lg: 6px 6px 0 0 #151617;
@@ -34,7 +34,7 @@
   --font-sans: var(--font-geist), ui-sans-serif, system-ui, sans-serif;
 }
 
-/* Bagel Fat One display utility — declared explicitly so it always generates. */
+/* Bagel Fat One display utility, declared explicitly so it always generates. */
 @utility font-display {
   font-family: var(--font-bagel), var(--font-geist), system-ui, sans-serif;
 }

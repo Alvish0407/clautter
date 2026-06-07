@@ -8,10 +8,11 @@ export default function NotFound() {
           404
         </p>
         <h1 className="mt-3 font-display text-[34px] leading-none tracking-[-0.02em] text-ink sm:text-[48px]">
-          This animation doesn’t exist.
+          Can&rsquo;t find that one.
         </h1>
         <p className="mt-3 text-[16px] font-medium text-muted">
-          The piece you’re looking for isn’t in the gallery.
+          It might have moved, or maybe it never existed. Let&rsquo;s get you
+          back.
         </p>
         <Link
           href="/"

@@ -1,5 +1,5 @@
 /**
- * Clautter mark — Claude (coral) → Flutter (blue) gradient square with a crisp
+ * Clautter mark: Claude (coral) to Flutter (blue) gradient square with a crisp
  * "C", framed in the neo-brutalist ink border. Matches /app/icon.svg.
  */
 export default function Logo({ size = 36 }: { size?: number }) {

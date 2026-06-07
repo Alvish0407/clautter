@@ -5,9 +5,9 @@ export default function Footer() {
     <footer className="border-t-2 border-ink">
       <div className="mx-auto flex max-w-[1200px] flex-col items-start justify-between gap-4 px-5 py-9 sm:flex-row sm:items-center sm:px-8">
         <p className="text-[14px] font-medium text-muted">
-          Clautter — Claude <span className="text-claude">×</span>{" "}
-          <span className="text-flutter">Flutter</span>. Open-source
-          interactive animations.
+          Built with Claude <span className="text-claude">×</span>{" "}
+          <span className="text-flutter">Flutter</span>. It&rsquo;s open source,
+          and more are on the way.
         </p>
         <a
           href={GITHUB_URL}

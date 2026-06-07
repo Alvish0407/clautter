@@ -13,9 +13,9 @@ export default function Hero() {
         </h1>
 
         <p className="animate-rise mt-6 max-w-[54ch] text-[17px] font-medium leading-relaxed text-muted sm:text-[19px]">
-          A living collection of interactive animations, built entirely in
-          code. No videos, no images — open one and drag, hover and move your
-          cursor to watch it respond in real time.
+          Little interactive things I built in code. No videos, no screenshots,
+          the real thing runs right here. Open one and mess with it: drag it
+          around, hover over it, move your cursor and watch it react.
         </p>
       </div>
     </section>

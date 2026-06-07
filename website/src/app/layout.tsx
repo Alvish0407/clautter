@@ -16,13 +16,13 @@ const bagel = Bagel_Fat_One({
 });
 
 export const metadata: Metadata = {
-  title: "Clautter — interactive animations, built in code",
+  title: "Clautter · interactive animations built in code",
   description:
-    "Claude × Flutter. A living collection of interactive animations, built entirely in code. Open any piece and play with it.",
+    "A bunch of little interactive animations I built in code. Open any one and play with it right in your browser.",
   openGraph: {
-    title: "Clautter — interactive animations, built in code",
+    title: "Clautter · interactive animations built in code",
     description:
-      "A living collection of interactive animations, built entirely in code.",
+      "Little interactive animations, built in code. Open one and play with it.",
     type: "website",
   },
 };

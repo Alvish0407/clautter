@@ -17,9 +17,9 @@ export async function generateMetadata({
 }): Promise<Metadata> {
   const { id } = await params;
   const project = getProject(id);
-  if (!project) return { title: "Not found — Clautter" };
+  if (!project) return { title: "Not found · Clautter" };
   return {
-    title: `${project.title} — Clautter`,
+    title: `${project.title} · Clautter`,
     description: project.blurb,
   };
 }

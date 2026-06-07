@@ -7,7 +7,7 @@ export type Project = {
   /** Longer description shown on the project page. */
   description: string;
   tags: string[];
-  /** Techniques used — listed on the project page. */
+  /** Techniques used, listed on the project page. */
   techniques: string[];
   /** Looping preview clip in /public/previews. */
   video: string;
@@ -22,9 +22,9 @@ export const projects: Project[] = [
     id: "morphing_sphere",
     title: "3D Morphing Dot Sphere",
     blurb:
-      "800 dots melt between a chaotic cloud and a perfect sphere, rotating in 3D with a sweeping colour wave.",
+      "800 dots drift around as a messy cloud, then pull together into a perfect sphere. It spins the whole time with a wave of colour rolling through it.",
     description:
-      "Eight hundred dots transition between a scattered chaotic cloud and a geometrically perfect sphere, rotating continuously in 3D. A colour wave sweeps top-to-bottom through a five-colour palette. Drag the slider inside to blend between the two states in real time.",
+      "Eight hundred dots float around as a loose, messy cloud, then snap together into a clean sphere, all while spinning in 3D. A wave of colour rolls down through them from top to bottom. There's a slider inside, so you can drag it and morph between the messy cloud and the sphere yourself.",
     tags: ["3D", "Math", "CustomPaint", "Perspective"],
     techniques: [
       "Spherical coordinate generation",
@@ -43,9 +43,9 @@ export const projects: Project[] = [
     id: "spider_dot_grid",
     title: "Spider Dot Grid",
     blurb:
-      "An 8-legged spider chases your cursor across a dot grid, each foot snapping to the nearest dot with a natural gait.",
+      "A little 8-legged spider that chases your cursor across a grid of dots, planting each foot on the nearest dot as it walks.",
     description:
-      "An 8-legged spider follows your cursor across a square dot grid. The body smooth-follows the pointer; each leg uses two-bone inverse kinematics to resolve its knee every frame. Feet snap to the nearest grid dot via an arc animation, and an alternating gait keeps at least four feet grounded at all times. Move your mouse over it.",
+      "An eight-legged spider that follows your cursor around a grid of dots. Its body eases toward your pointer, and each leg figures out where its knee should bend on every frame. The feet step to the nearest dot with a little hop, and it always keeps at least four feet down so the walk looks natural. Move your mouse over it and it'll come after you.",
     tags: ["IK", "Gait", "CustomPaint", "Interactive"],
     techniques: [
       "Two-bone IK (law of cosines)",
