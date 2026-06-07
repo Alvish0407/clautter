@@ -5,8 +5,9 @@
 // automatically; raw asset URLs (<video src>, <iframe src>) are not prefixed, so
 // build those with BASE_PATH.
 //
-// Keep this in sync with `basePath` in next.config.ts.
-export const BASE_PATH = "/clautter";
+// Production is /clautter; branch previews override via NEXT_PUBLIC_BASE_PATH
+// (e.g. /clautter/preview/<branch>). Keep this in sync with next.config.ts.
+export const BASE_PATH = process.env.NEXT_PUBLIC_BASE_PATH || "/clautter";
 
 /** Prefix a public-asset path (e.g. "/previews/x.mp4") with the base path. */
 export function asset(path: string): string {
