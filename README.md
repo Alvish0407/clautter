@@ -25,9 +25,15 @@ Eight hundred dots transition between a scattered chaotic cloud and a geometrica
 
 ### Spider Dot Grid
 
-An 8-legged spider follows your cursor (or touch) across a square dot grid. The body smooth-follows the pointer via lerp. Each of the eight legs uses two-bone inverse kinematics (law of cosines) to resolve the knee position from the hip and foot every frame. Feet snap to the nearest grid dot via an arc animation (eased horizontal lerp + sinusoidal vertical lift). An alternating gait — even legs and odd legs never step simultaneously — ensures at least four feet are grounded at all times.
+An 8-legged spider follows your cursor (or touch) across a square dot grid. The body smooth-follows the pointer via lerp. Each of the eight legs uses two-bone inverse kinematics (law of cosines) to resolve the knee position from the hip and foot every frame. Feet snap to the nearest grid dot via an arc animation (eased horizontal lerp + sinusoidal vertical lift). An alternating gait, where even legs and odd legs never step simultaneously, ensures at least four feet are grounded at all times.
 
 **Techniques:** two-bone IK (law of cosines) · alternating gait groups · step arc animation (easeInOut + sinusoidal lift) · body lerp follow · cached grid rasterisation (`ui.Image`) · `Listener` + `MouseRegion` pointer events
+
+### Ripple Dot Grid
+
+A dense grid of dots fills the screen. Touch or drag anywhere and the dots nearby scatter away from your pointer, then spring back to their home positions with a damped, springy wobble. Multi-touch is fully supported, so every finger pushes its own ripple.
+
+**Techniques:** spring-mass physics · semi-implicit Euler integration · radial repulsion · damped oscillation · multi-pointer `Listener` · idle-skip optimisation
 
 ---
 
@@ -128,33 +134,6 @@ After `flutter build web --release`, embed the output in any JavaScript site:
 ```
 
 See the [Flutter web embedding docs](https://docs.flutter.dev/platform-integration/web/embedding-flutter-web) for deep-linking into a specific animation, message channels between Flutter and JS, and iframe isolation patterns.
-
----
-
-## Design System
-
-A light, friendly, [60fps.design](https://60fps.design/)-inspired system: a soft
-off-white canvas, near-black text, a single dominant blue accent, generously
-rounded corners, and the **Inter** typeface throughout (loaded as a web font in
-`web/index.html`).
-
-| Token | Value | Usage |
-|---|---|---|
-| `AppTheme.background` | `#F5F5F5` | Scaffold / page canvas |
-| `AppTheme.surface` | `#FFFFFF` | Cards |
-| `AppTheme.surfaceVariant` | `#EFEFEF` | Tag chips |
-| `AppTheme.onSurface` | `#0A0A0A` | Primary text |
-| `AppTheme.onSurfaceMuted` | `#5C5C5C` | Secondary text, descriptions |
-| `AppTheme.primary` | `#0061FE` | Accent — CTAs, links, hover, highlights |
-| `AppTheme.border` | `#EAEAEA` | Card outlines, dividers |
-
-**Shape & spacing:** cards use a `20px` radius, buttons `12px`, chips `8px`. All
-gaps follow a `10px` base grid (`10 / 20 / 30 / 40`).
-
-**Live card previews:** each gallery card renders a real, running animation as
-its thumbnail (no images or videos). An animation may supply an optional
-`previewBuilder` in its `AnimationMeta` to show a controls-free variant in the
-card — see `morphing_sphere/widgets/morph_preview.dart` for an example.
 
 ---
 
