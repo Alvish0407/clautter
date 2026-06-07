@@ -39,13 +39,13 @@ jobs:
       - name: Build Next.js site for preview
         working-directory: website
         env:
-          NEXT_PUBLIC_BASE_PATH: "/clautter/preview/${{ steps.branch.outputs.name }}"
+          NEXT_PUBLIC_BASE_PATH: "/preview/${{ steps.branch.outputs.name }}"
         run: |
           npm ci
           npm run build
           # The committed embed's <base href> targets the production path; rewrite
           # it to this preview's path so the Flutter assets resolve correctly.
-          sed -i "s#<base href=\"/clautter/embeds/clautter/\">#<base href=\"${NEXT_PUBLIC_BASE_PATH}/embeds/clautter/\">#" out/embeds/clautter/index.html
+          sed -i "s#<base href=\"/embeds/clautter/\">#<base href=\"${NEXT_PUBLIC_BASE_PATH}/embeds/clautter/\">#" out/embeds/clautter/index.html
 
       - name: Deploy to gh-pages/preview/<branch>
         run: |
@@ -88,4 +88,4 @@ jobs:
           OWNER=$(echo "$REPO" | cut -d'/' -f1)
           PREVIEW_DIR="preview/${{ steps.branch.outputs.name }}"
           echo "### Preview deployed"
-          echo "https://${OWNER}.github.io/clautter/${PREVIEW_DIR}/"
+          echo "https://clautter.alvish.in/${PREVIEW_DIR}/"
