@@ -1,5 +1,8 @@
 import 'dart:math';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
+
 import 'models/particle.dart';
 import 'painters/spider_painter.dart';
 
@@ -46,8 +49,7 @@ class _SpiderDotGridAnimationState extends State<SpiderDotGridAnimation>
 
   void _initParticles(Size size) {
     final rng = Random();
-    _particles =
-        List.generate(_particleCount, (_) => randomParticle(rng, size));
+    _particles = List.generate(_particleCount, (_) => randomParticle(rng, size));
     _canvasSize = size;
     _initPending = false;
   }
