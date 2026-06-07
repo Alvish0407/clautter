@@ -18,19 +18,35 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Clautter — a living collection of interactive animations, built entirely in code with Flutter.">
+  <meta name="theme-color" content="#F5F5F5">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="clautter">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="Clautter">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>clautter</title>
+  <!-- Inter — brand heading & body font (60fps.design-inspired system) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <title>Clautter</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    /* Light canvas behind the Flutter engine while it boots — avoids a
+       black flash on first paint, matching AppTheme.background. */
+    html, body {
+      margin: 0;
+      padding: 0;
+      background-color: #F5F5F5;
+    }
+  </style>
 </head>
 <body>
   <script src="flutter_bootstrap.js" async></script>
