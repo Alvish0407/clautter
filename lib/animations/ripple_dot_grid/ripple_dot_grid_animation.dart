@@ -9,22 +9,26 @@ import 'painters/ripple_painter.dart';
 // ─── Physics & visual constants ───────────────────────────────────────────────
 
 /// Spacing between dot home positions in logical pixels.
-const double _kGridSpacing = 28.0;
+const double _kGridSpacing = 18.0;
 
 /// Rendered radius of each dot.
-const double _kDotRadius = 2.2;
+const double _kDotRadius = 1.8;
 
 /// Radius around a touch point inside which dots are repelled.
-const double _kRepelRadius = 90.0;
+const double _kRepelRadius = 110.0;
 
 /// Peak repulsion acceleration (px/s²) at zero distance.
-const double _kRepelStrength = 18000.0;
+/// High value = dots snap away instantly on touch.
+const double _kRepelStrength = 55000.0;
 
 /// Spring stiffness constant (px/s² per px of displacement).
-const double _kSpring = 180.0;
+/// Low value = slow, lazy return to home.
+const double _kSpring = 35.0;
 
 /// Linear velocity damping factor per second.
-const double _kDamping = 9.0;
+/// Value > 2·√k keeps the return overdamped (no bounce, speed decreases
+/// smoothly all the way back).
+const double _kDamping = 18.0;
 
 // ──────────────────────────────────────────────────────────────────────────────
 
