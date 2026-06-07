@@ -15,7 +15,7 @@ class ClautterApp extends StatelessWidget {
     return MaterialApp(
       title: 'Clautter',
       debugShowCheckedModeBanner: false,
-      theme: AppTheme.dark,
+      theme: AppTheme.light,
       home: const GalleryScreen(),
     );
   }

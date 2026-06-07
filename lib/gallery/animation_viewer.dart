@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 import '../core/models/animation_meta.dart';
-import '../core/theme/app_theme.dart';
 
 /// Full-screen host for a single animation.
 ///
-/// Renders edge-to-edge with a transparent app bar overlay.
-/// The scaffold background colour comes from [AnimationMeta.backgroundColor]
-/// so each animation can declare its own theme (e.g. light vs dark).
+/// Renders edge-to-edge with a transparent app bar overlay. The scaffold
+/// background colour comes from [AnimationMeta.backgroundColor] so each
+/// animation declares its own theme (light vs dark); the back arrow and title
+/// adapt their colour to stay legible on either.
 class AnimationViewer extends StatelessWidget {
   final AnimationMeta meta;
 
@@ -15,30 +15,31 @@ class AnimationViewer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final onColor =
+        ThemeData.estimateBrightnessForColor(meta.backgroundColor) ==
+            Brightness.light
+        ? Colors.black87
+        : Colors.white;
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: meta.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: IconThemeData(
-          // Use a dark icon on light backgrounds, white on dark.
-          color:
-              ThemeData.estimateBrightnessForColor(meta.backgroundColor) ==
-                  Brightness.light
-              ? Colors.black87
-              : AppTheme.accent,
+        scrolledUnderElevation: 0,
+        leading: IconButton(
+          icon: Icon(Icons.arrow_back, color: onColor),
+          onPressed: () => Navigator.of(context).maybePop(),
+          tooltip: 'Back to gallery',
         ),
         title: Text(
           meta.title,
           style: TextStyle(
-            color:
-                ThemeData.estimateBrightnessForColor(meta.backgroundColor) ==
-                    Brightness.light
-                ? Colors.black87
-                : AppTheme.accent,
-            fontSize: 14,
-            fontWeight: FontWeight.w500,
+            color: onColor,
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+            letterSpacing: -0.2,
           ),
         ),
       ),
