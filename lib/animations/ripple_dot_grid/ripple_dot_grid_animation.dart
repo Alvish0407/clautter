@@ -2,6 +2,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
+import 'package:flutter/services.dart';
 
 import 'models/dot_particle.dart';
 import 'painters/ripple_painter.dart';
@@ -165,8 +166,7 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
   void _simulate(double dt) {
     // Build the list of (position, velocity) pairs for all active inputs.
     final inputs = <(Offset, Offset)>[
-      for (final id in _pointers.keys)
-        (_pointers[id]!, _pointerVels[id] ?? Offset.zero),
+      for (final id in _pointers.keys) (_pointers[id]!, _pointerVels[id] ?? Offset.zero),
       if (_mouseHover != null) (_mouseHover!, _mouseHoverVel),
     ];
 
