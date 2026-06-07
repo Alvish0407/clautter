@@ -2,7 +2,6 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter/services.dart';
 
 import 'models/dot_particle.dart';
 import 'painters/ripple_painter.dart';
@@ -15,35 +14,47 @@ const double _kGridSpacing = 18.0;
 /// Rendered radius of each dot.
 const double _kDotRadius = 1.8;
 
-/// Radius around a touch point inside which dots are repelled.
+/// Radius around an input point inside which dots are repelled.
 const double _kRepelRadius = 32.0;
 
-/// Peak repulsion acceleration (px/s²) at zero distance.
-/// High value = dots snap away instantly on touch.
-const double _kRepelStrength = 120000.0;
+/// Base repulsion acceleration (px/s²) — applied when the cursor is still.
+const double _kRepelStrength = 80000.0;
 
-/// Spring stiffness constant (px/s² per px of displacement).
-/// Low value = slow, lazy return to home.
-const double _kSpring = 15.0;
+/// Cursor speed (px/s) at which the velocity boost reaches its maximum.
+const double _kBoostThreshold = 700.0;
 
-/// Linear velocity damping factor per second.
-/// Value > 2·√k keeps the return overdamped (no bounce, speed decreases
-/// smoothly all the way back).
-const double _kDamping = 22.0;
+/// Maximum additional repulsion multiplier from cursor velocity.
+/// e.g. 4.0 means fast swipes throw dots up to 5× harder than a still press.
+const double _kMaxVelocityBoost = 4.0;
+
+/// Spring stiffness (px/s² per px). Higher = snappier return.
+/// With damping below 2·√k the system is underdamped — dots overshoot
+/// slightly then settle, which reads as natural/alive.
+const double _kSpring = 90.0;
+
+/// Velocity damping per second. 16 < 2·√90 ≈ 19 → underdamped (slight
+/// overshoot on return gives a satisfying physical snap-back).
+const double _kDamping = 16.0;
 
 // ──────────────────────────────────────────────────────────────────────────────
 
 /// Entry widget for the Ripple Dot Grid animation.
 ///
-/// A uniform grid of dots fills the canvas. Every dot is a spring-mass
-/// particle with a rest position at its grid cell. Touch or drag events inject
-/// a radial repulsion force; when the finger lifts, the dots spring back to
-/// their home positions via damped oscillation.
+/// Dots repel from the cursor/finger. Repulsion force is amplified by how fast
+/// the input is moving — aggressive swipes throw dots much further than slow
+/// presses. Spring-mass physics (underdamped) pull each dot back to its home
+/// with a subtle overshoot that makes the return feel alive.
+///
+/// Cursor velocity is derived from position deltas between simulation frames,
+/// then smoothed with a one-pole low-pass filter to avoid jitter.
 ///
 /// Physics per frame (semi-implicit Euler):
-///   F = repulsion(touch) − spring·displacement − damping·velocity
-///   vel += F · dt
-///   pos += vel · dt
+///   boost   = 1 + clamp(cursorSpeed / threshold, 0, maxBoost)
+///   F_repel = boost · baseStrength · falloff / dist
+///   F_spring = −k · displacement
+///   F_damp   = −c · velocity
+///   vel     += (F_repel + F_spring + F_damp) · dt
+///   pos     += vel · dt
 class RippleDotGridAnimation extends StatefulWidget {
   const RippleDotGridAnimation({super.key});
 
@@ -59,14 +70,18 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
   List<DotParticle> _dots = [];
   Size _builtSize = Size.zero;
 
-  /// Active pointer positions keyed by pointer ID (touch + mouse drag).
+  // ── Input positions (current frame) ────────────────────────────────────────
   final Map<int, Offset> _pointers = {};
-
-  /// Mouse cursor position when hovering without a button held (desktop).
-  /// Null when the cursor is outside the widget.
   Offset? _mouseHover;
 
-  /// Whether all dots are at rest and no inputs are active.
+  // ── Previous-frame positions for velocity derivation ───────────────────────
+  final Map<int, Offset> _prevPointers = {};
+  Offset? _prevMouseHover;
+
+  // ── Smoothed cursor velocities (low-pass filtered) ─────────────────────────
+  final Map<int, Offset> _pointerVels = {};
+  Offset _mouseHoverVel = Offset.zero;
+
   bool _allAtRest = true;
 
   @override
@@ -87,7 +102,6 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
     if (size == _builtSize) return;
     _builtSize = size;
 
-    // Offset the grid by half a spacing so dots don't sit on the very edge.
     final startX = _kGridSpacing / 2;
     final startY = _kGridSpacing / 2;
     final cols = ((size.width - startX) / _kGridSpacing).ceil() + 1;
@@ -104,7 +118,6 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
   // ─── Ticker ────────────────────────────────────────────────────────────────
 
   void _onTick(Duration elapsed) {
-    // Skip physics when nothing is happening.
     if (_allAtRest && _pointers.isEmpty && _mouseHover == null) return;
 
     final dt = _lastTime == Duration.zero
@@ -112,34 +125,75 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
         : min((elapsed - _lastTime).inMicroseconds / 1e6, 1 / 15);
     _lastTime = elapsed;
 
+    _updateInputVelocities(dt);
     _simulate(dt);
     setState(() {});
   }
 
+  // ─── Cursor velocity (smoothed with a one-pole low-pass) ───────────────────
+
+  void _updateInputVelocities(double dt) {
+    // Low-pass smoothing factor — higher = more responsive, lower = smoother.
+    const alpha = 0.6;
+
+    for (final id in _pointers.keys) {
+      final prev = _prevPointers[id];
+      if (prev != null && dt > 0) {
+        final raw = (_pointers[id]! - prev) / dt;
+        final old = _pointerVels[id] ?? Offset.zero;
+        _pointerVels[id] = old * (1 - alpha) + raw * alpha;
+      } else {
+        _pointerVels[id] = Offset.zero;
+      }
+      _prevPointers[id] = _pointers[id]!;
+    }
+    // Clear velocities for pointers that lifted.
+    _pointerVels.removeWhere((id, _) => !_pointers.containsKey(id));
+    _prevPointers.removeWhere((id, _) => !_pointers.containsKey(id));
+
+    if (_mouseHover != null && _prevMouseHover != null && dt > 0) {
+      final raw = (_mouseHover! - _prevMouseHover!) / dt;
+      _mouseHoverVel = _mouseHoverVel * (1 - alpha) + raw * alpha;
+    } else {
+      _mouseHoverVel = Offset.zero;
+    }
+    _prevMouseHover = _mouseHover;
+  }
+
+  // ─── Physics ───────────────────────────────────────────────────────────────
+
   void _simulate(double dt) {
+    // Build the list of (position, velocity) pairs for all active inputs.
+    final inputs = <(Offset, Offset)>[
+      for (final id in _pointers.keys)
+        (_pointers[id]!, _pointerVels[id] ?? Offset.zero),
+      if (_mouseHover != null) (_mouseHover!, _mouseHoverVel),
+    ];
+
     bool anyMoving = false;
 
     for (final dot in _dots) {
       var fx = 0.0;
       var fy = 0.0;
 
-      // Repulsion from every active input (touch, mouse drag, mouse hover).
-      final allInputs = [..._pointers.values, ?_mouseHover];
-      for (final touch in allInputs) {
+      for (final (touch, inputVel) in inputs) {
         final dx = dot.pos.dx - touch.dx;
         final dy = dot.pos.dy - touch.dy;
-        final distSq = dx * dx + dy * dy;
-        final dist = sqrt(distSq);
+        final dist = sqrt(dx * dx + dy * dy);
         if (dist > 0 && dist < _kRepelRadius) {
-          // Force falls off linearly from centre to edge of radius.
           final t = 1.0 - dist / _kRepelRadius;
-          final mag = t * t * _kRepelStrength / dist;
+
+          // Velocity boost: faster cursor = stronger throw.
+          final speed = inputVel.distance;
+          final boost = 1.0 + (speed / _kBoostThreshold).clamp(0.0, _kMaxVelocityBoost);
+
+          final mag = boost * t * t * _kRepelStrength / dist;
           fx += dx * mag;
           fy += dy * mag;
         }
       }
 
-      // Spring force: pulls dot back to home.
+      // Spring: pull back to home.
       fx -= (dot.pos.dx - dot.home.dx) * _kSpring;
       fy -= (dot.pos.dy - dot.home.dy) * _kSpring;
 
@@ -147,7 +201,7 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
       fx -= dot.vel.dx * _kDamping;
       fy -= dot.vel.dy * _kDamping;
 
-      // Semi-implicit Euler integration.
+      // Semi-implicit Euler.
       final vx = dot.vel.dx + fx * dt;
       final vy = dot.vel.dy + fy * dt;
       dot.vel = Offset(vx, vy);
@@ -158,7 +212,6 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
 
     _allAtRest = !anyMoving && _pointers.isEmpty && _mouseHover == null;
     if (_allAtRest) {
-      // Snap every dot exactly to home to avoid floating-point drift.
       for (final dot in _dots) {
         dot.reset();
       }
@@ -177,8 +230,17 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
     _allAtRest = false;
   }
 
-  void _onPointerUp(PointerUpEvent e) => _pointers.remove(e.pointer);
-  void _onPointerCancel(PointerCancelEvent e) => _pointers.remove(e.pointer);
+  void _onPointerUp(PointerUpEvent e) {
+    _pointers.remove(e.pointer);
+    _prevPointers.remove(e.pointer);
+    _pointerVels.remove(e.pointer);
+  }
+
+  void _onPointerCancel(PointerCancelEvent e) {
+    _pointers.remove(e.pointer);
+    _prevPointers.remove(e.pointer);
+    _pointerVels.remove(e.pointer);
+  }
 
   void _onMouseHover(PointerHoverEvent e) {
     _mouseHover = e.localPosition;
@@ -187,6 +249,8 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
 
   void _onMouseExit(PointerExitEvent e) {
     _mouseHover = null;
+    _prevMouseHover = null;
+    _mouseHoverVel = Offset.zero;
   }
 
   // ─── Build ─────────────────────────────────────────────────────────────────
