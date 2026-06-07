@@ -16,7 +16,7 @@ const double _kGridSpacing = 18.0;
 const double _kDotRadius = 1.8;
 
 /// Radius around a touch point inside which dots are repelled.
-const double _kRepelRadius = 60.0;
+const double _kRepelRadius = 32.0;
 
 /// Peak repulsion acceleration (px/s²) at zero distance.
 /// High value = dots snap away instantly on touch.
