@@ -1,6 +1,8 @@
+import 'package:flutter/material.dart';
 import '../models/animation_meta.dart';
 import '../../animations/morphing_sphere/morphing_sphere_animation.dart';
 import '../../animations/spider_dot_grid/spider_dot_grid_animation.dart';
+import '../../animations/spider_dot_grid/models/spider_config.dart';
 
 /// The single source of truth for every animation in Clautter.
 ///
@@ -27,13 +29,16 @@ final List<AnimationMeta> animationRegistry = [
     id: 'spider_dot_grid',
     title: 'Spider Dot Grid',
     description:
-        'Particles drift across the canvas and weave ephemeral connections '
-        'whenever they wander close enough — like threads of a spider\'s web '
-        'appearing and dissolving.',
+        'An 8-legged spider follows your cursor across a square dot grid. '
+        'Each foot snaps to the nearest grid dot via an arc animation, '
+        'and an alternating gait ensures at least four feet are always grounded.',
     technicalSummary:
-        'Ticker · CustomPaint · Euler integration · velocity-bounce '
-        'boundaries · pairwise distance check · opacity falloff.',
-    tags: const ['Particles', 'Physics', 'CustomPaint'],
+        'Ticker · CustomPaint · two-bone IK (law of cosines) · '
+        'alternating gait groups · step arc (easeInOut + sin lift) · '
+        'body lerp follow · cached grid rasterisation (ui.Image) · '
+        'Listener + MouseRegion pointer events.',
+    tags: const ['IK', 'Gait', 'CustomPaint', 'Interactive'],
+    backgroundColor: kBackgroundColor,
     builder: (_) => const SpiderDotGridAnimation(),
   ),
 ];

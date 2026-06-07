@@ -4,8 +4,9 @@ import '../core/theme/app_theme.dart';
 
 /// Full-screen host for a single animation.
 ///
-/// Renders edge-to-edge with a transparent app bar overlay so the
-/// animation canvas fills the entire screen.
+/// Renders edge-to-edge with a transparent app bar overlay.
+/// The scaffold background colour comes from [AnimationMeta.backgroundColor]
+/// so each animation can declare its own theme (e.g. light vs dark).
 class AnimationViewer extends StatelessWidget {
   final AnimationMeta meta;
 
@@ -15,15 +16,24 @@ class AnimationViewer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.black,
+      backgroundColor: meta.backgroundColor,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        iconTheme: const IconThemeData(color: AppTheme.accent),
+        iconTheme: IconThemeData(
+          // Use a dark icon on light backgrounds, white on dark.
+          color: ThemeData.estimateBrightnessForColor(meta.backgroundColor) ==
+                  Brightness.light
+              ? Colors.black87
+              : AppTheme.accent,
+        ),
         title: Text(
           meta.title,
-          style: const TextStyle(
-            color: AppTheme.accent,
+          style: TextStyle(
+            color: ThemeData.estimateBrightnessForColor(meta.backgroundColor) ==
+                    Brightness.light
+                ? Colors.black87
+                : AppTheme.accent,
             fontSize: 14,
             fontWeight: FontWeight.w500,
           ),

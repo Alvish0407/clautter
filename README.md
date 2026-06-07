@@ -8,7 +8,7 @@
 
 Clautter is a living gallery of Flutter animations. Each animation lives in its own self-contained package under `lib/animations/`, with:
 
-- **Separated concerns** — `models/`, `painters/`, and `widgets/` each have their own files.
+- **Separated concerns** — `models/`, `painters/`, `utils/`, and `widgets/` each have their own files.
 - **Documented source** — every non-obvious decision (math, invariants, performance trade-offs) is explained inline.
 - **Web-embedding ready** — the Flutter web build plugs into any JS framework via the [Flutter web embedding API](https://docs.flutter.dev/platform-integration/web/embedding-flutter-web).
 - **Registry-driven gallery** — add one entry to `animation_registry.dart` and the animation appears in the gallery automatically.
@@ -25,9 +25,9 @@ Eight hundred dots transition between a scattered chaotic cloud and a geometrica
 
 ### Spider Dot Grid
 
-Eighty particles drift across the canvas and bounce off edges. Whenever two particles wander within 150 px of each other, a translucent line forms between them — the closer they are, the more opaque the line — evoking threads of a spider's web appearing and dissolving.
+An 8-legged spider follows your cursor (or touch) across a square dot grid. The body smooth-follows the pointer via lerp. Each of the eight legs uses two-bone inverse kinematics (law of cosines) to resolve the knee position from the hip and foot every frame. Feet snap to the nearest grid dot via an arc animation (eased horizontal lerp + sinusoidal vertical lift). An alternating gait — even legs and odd legs never step simultaneously — ensures at least four feet are grounded at all times.
 
-**Techniques:** Euler particle integration · velocity-bounce boundaries · pairwise O(n²) distance check · linear opacity falloff
+**Techniques:** two-bone IK (law of cosines) · alternating gait groups · step arc animation (easeInOut + sinusoidal lift) · body lerp follow · cached grid rasterisation (`ui.Image`) · `Listener` + `MouseRegion` pointer events
 
 ---
 
@@ -35,35 +35,38 @@ Eighty particles drift across the canvas and bounce off edges. Whenever two part
 
 ```
 lib/
-├── main.dart                                 # App entry → ClautterApp
+├── main.dart                                    # App entry → ClautterApp
 ├── core/
 │   ├── models/
-│   │   └── animation_meta.dart               # AnimationMeta descriptor
+│   │   └── animation_meta.dart                  # AnimationMeta descriptor
 │   ├── registry/
-│   │   └── animation_registry.dart           # Central list of all animations
+│   │   └── animation_registry.dart              # Central list of all animations
 │   └── theme/
-│       └── app_theme.dart                    # Design tokens + ThemeData
+│       └── app_theme.dart                       # Design tokens + ThemeData
 ├── animations/
 │   ├── morphing_sphere/
-│   │   ├── morphing_sphere_animation.dart    # Entry widget (Ticker owner)
+│   │   ├── morphing_sphere_animation.dart        # Entry widget (Ticker owner)
 │   │   ├── models/
-│   │   │   └── dot.dart                      # Dot · generateRandomDot · lerp · blendColor
+│   │   │   └── dot.dart                         # Dot · generateRandomDot · lerp · blendColor
 │   │   ├── painters/
-│   │   │   └── sphere_painter.dart           # SpherePainter (CustomPainter)
+│   │   │   └── sphere_painter.dart              # SpherePainter (CustomPainter)
 │   │   └── widgets/
-│   │       └── morph_controls.dart           # Chaos ↔ Sphere slider
+│   │       └── morph_controls.dart              # Chaos ↔ Sphere slider
 │   └── spider_dot_grid/
-│       ├── spider_dot_grid_animation.dart    # Entry widget (Ticker owner)
+│       ├── spider_dot_grid_animation.dart        # Entry widget (Ticker + pointer events)
 │       ├── models/
-│       │   └── particle.dart                 # Particle · randomParticle · stepParticle
-│       └── painters/
-│           └── spider_painter.dart           # SpiderPainter (CustomPainter)
+│       │   ├── spider_config.dart               # All kConstants + per-leg config arrays
+│       │   └── leg.dart                         # Leg · startStep · updateStep
+│       ├── painters/
+│       │   └── spider_painter.dart              # SpiderPainter (CustomPainter)
+│       └── utils/
+│           └── spider_utils.dart               # computeKnee · snapToGrid · getPlateOffsets
 ├── gallery/
-│   ├── gallery_screen.dart                   # Scrollable animation catalogue
-│   └── animation_viewer.dart                 # Full-screen single-animation host
+│   ├── gallery_screen.dart                      # Scrollable animation catalogue
+│   └── animation_viewer.dart                    # Full-screen single-animation host
 └── shared/
     └── widgets/
-        └── animation_card.dart               # Gallery card component
+        └── animation_card.dart                  # Gallery card component
 ```
 
 ---
@@ -74,6 +77,7 @@ lib/
    - `<your_name>_animation.dart` — the stateful entry widget that owns the `Ticker`.
    - `models/` — plain Dart data classes and pure functions.
    - `painters/` — `CustomPainter` subclass(es).
+   - `utils/` — pure helper functions (math, geometry, etc.).
    - `widgets/` — any interactive controls (sliders, buttons).
 2. Register it in `lib/core/registry/animation_registry.dart` — the gallery picks it up automatically.
 

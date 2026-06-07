@@ -15,6 +15,10 @@ class AnimationMeta {
   final List<String> tags;
   final WidgetBuilder builder;
 
+  /// Scaffold background colour for the full-screen viewer.
+  /// Defaults to black; override for light-themed animations.
+  final Color backgroundColor;
+
   const AnimationMeta({
     required this.id,
     required this.title,
@@ -22,5 +26,6 @@ class AnimationMeta {
     required this.technicalSummary,
     required this.tags,
     required this.builder,
+    this.backgroundColor = Colors.black,
   });
 }

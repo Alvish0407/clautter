@@ -1,45 +1,99 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
-import '../models/particle.dart';
+import '../models/leg.dart';
+import '../models/spider_config.dart';
 
-/// Renders the spider-web particle field onto a [Canvas].
+/// Renders the spider and the dot grid onto a [Canvas].
 ///
-/// For every pair of particles closer than [_connectThreshold] px, a
-/// translucent line is drawn whose opacity falls off linearly with distance.
-/// Each particle is also drawn as a small filled circle.
+/// The dot grid is drawn from a pre-rasterised [ui.Image] cached by the
+/// owning widget, so only the spider itself is redrawn every frame.
+///
+/// Draw order (back to front):
+/// 1. Cached grid image
+/// 2. Leg segments  (hip → knee → foot)
+/// 3. Knee joint squares
+/// 4. Foot squares
+/// 5. Body plate squares
+/// 6. Body core rectangle
 class SpiderPainter extends CustomPainter {
-  final List<Particle> particles;
+  final ui.Image? gridImage;
+  final Offset bodyPosition;
+  final List<Leg> legs;
+  final List<Offset> plateOffsets;
 
-  /// Maximum distance at which two particles will be connected by a line.
-  static const double _connectThreshold = 150.0;
+  SpiderPainter({
+    required this.gridImage,
+    required this.bodyPosition,
+    required this.legs,
+    required this.plateOffsets,
+  });
 
-  const SpiderPainter({required this.particles});
+  // Static paints avoid per-frame allocation.
+  static final _legPaint = Paint()
+    ..color = kLegColor
+    ..strokeWidth = kLegStrokeWidth
+    ..style = PaintingStyle.stroke
+    ..strokeCap = StrokeCap.round;
+
+  static final _bodyPaint = Paint()..color = kBodyColor;
+  static final _footPaint = Paint()..color = kFootColor;
+  static final _kneePaint = Paint()..color = kGridDotColor;
 
   @override
   void paint(Canvas canvas, Size size) {
-    final linePaint = Paint()..strokeWidth = 1.0;
-    final dotPaint = Paint()
-      ..style = PaintingStyle.fill
-      ..color = Colors.white.withOpacity(0.9);
-
-    final n = particles.length;
-
-    // O(n²) pairwise check — acceptable for n ≤ ~100 at 60 fps.
-    for (int i = 0; i < n; i++) {
-      for (int j = i + 1; j < n; j++) {
-        final d = (particles[i].position - particles[j].position).distance;
-        if (d < _connectThreshold) {
-          // Maximum opacity when co-located; zero at the threshold distance.
-          linePaint.color =
-              Colors.white.withOpacity((1 - d / _connectThreshold) * 0.6);
-          canvas.drawLine(
-              particles[i].position, particles[j].position, linePaint);
-        }
-      }
+    // 1. Grid (cached raster)
+    if (gridImage != null) {
+      canvas.drawImage(gridImage!, Offset.zero, Paint());
     }
 
-    for (final p in particles) {
-      canvas.drawCircle(p.position, 2.5, dotPaint);
+    // 2. Leg segments: hip → knee → foot
+    for (final leg in legs) {
+      canvas.drawPath(
+        Path()
+          ..moveTo(leg.hipPoint.dx, leg.hipPoint.dy)
+          ..lineTo(leg.kneePoint.dx, leg.kneePoint.dy)
+          ..lineTo(leg.footPosition.dx, leg.footPosition.dy),
+        _legPaint,
+      );
     }
+
+    // 3. Knee joints
+    for (final leg in legs) {
+      canvas.drawRect(
+        Rect.fromCenter(
+            center: leg.kneePoint,
+            width: kKneeJointSize,
+            height: kKneeJointSize),
+        _kneePaint,
+      );
+    }
+
+    // 4. Feet
+    for (final leg in legs) {
+      canvas.drawRect(
+        Rect.fromCenter(
+            center: leg.footPosition, width: kFootSize, height: kFootSize),
+        _footPaint,
+      );
+    }
+
+    // 5. Body plates
+    for (final offset in plateOffsets) {
+      canvas.drawRect(
+        Rect.fromCenter(
+            center: bodyPosition + offset,
+            width: kBodyPlateSize,
+            height: kBodyPlateSize),
+        _bodyPaint,
+      );
+    }
+
+    // 6. Body core
+    canvas.drawRect(
+      Rect.fromCenter(
+          center: bodyPosition, width: kBodyWidth, height: kBodyHeight),
+      _bodyPaint,
+    );
   }
 
   @override
