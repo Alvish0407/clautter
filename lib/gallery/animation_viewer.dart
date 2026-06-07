@@ -11,7 +11,11 @@ import '../core/models/animation_meta.dart';
 class AnimationViewer extends StatelessWidget {
   final AnimationMeta meta;
 
-  const AnimationViewer({super.key, required this.meta});
+  /// When embedded in an external site (iframe), the host page supplies its own
+  /// title/back chrome, so the in-app app bar is omitted entirely.
+  final bool embedded;
+
+  const AnimationViewer({super.key, required this.meta, this.embedded = false});
 
   @override
   Widget build(BuildContext context) {
@@ -24,25 +28,27 @@ class AnimationViewer extends StatelessWidget {
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: meta.backgroundColor,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        scrolledUnderElevation: 0,
-        leading: IconButton(
-          icon: Icon(Icons.arrow_back, color: onColor),
-          onPressed: () => Navigator.of(context).maybePop(),
-          tooltip: 'Back to gallery',
-        ),
-        title: Text(
-          meta.title,
-          style: TextStyle(
-            color: onColor,
-            fontSize: 15,
-            fontWeight: FontWeight.w600,
-            letterSpacing: -0.2,
-          ),
-        ),
-      ),
+      appBar: embedded
+          ? null
+          : AppBar(
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              scrolledUnderElevation: 0,
+              leading: IconButton(
+                icon: Icon(Icons.arrow_back, color: onColor),
+                onPressed: () => Navigator.of(context).maybePop(),
+                tooltip: 'Back to gallery',
+              ),
+              title: Text(
+                meta.title,
+                style: TextStyle(
+                  color: onColor,
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.2,
+                ),
+              ),
+            ),
       body: meta.builder(context),
     );
   }
