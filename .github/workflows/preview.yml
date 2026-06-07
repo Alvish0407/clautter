@@ -57,9 +57,9 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          # Clean working tree
+          # Clean working tree — -x also removes gitignored files (node_modules, out/)
           git checkout -- . 2>/dev/null || true
-          git clean -fd 2>/dev/null || true
+          git clean -fdx 2>/dev/null || true
 
           # Fetch or create gh-pages branch
           if git fetch origin gh-pages 2>/dev/null; then
