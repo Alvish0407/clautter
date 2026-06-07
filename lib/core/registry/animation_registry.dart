@@ -1,5 +1,8 @@
+import 'package:flutter/material.dart';
+
 import '../../animations/morphing_sphere/morphing_sphere_animation.dart';
 import '../../animations/ripple_dot_grid/ripple_dot_grid_animation.dart';
+import '../../animations/morphing_sphere/widgets/morph_preview.dart';
 import '../../animations/spider_dot_grid/models/spider_config.dart';
 import '../../animations/spider_dot_grid/spider_dot_grid_animation.dart';
 import '../models/animation_meta.dart';
@@ -23,6 +26,10 @@ final List<AnimationMeta> animationRegistry = [
         'distribution · LERP · Y-axis rotation matrix · perspective '
         'projection · painter\'s algorithm · staggered colour blending.',
     tags: const ['3D', 'Math', 'CustomPaint', 'Perspective'],
+    backgroundColor: Colors.black,
+    previewBackground: Colors.black,
+    previewVideoAsset: 'assets/previews/morphing_sphere.mp4',
+    previewBuilder: (_) => const MorphingSpherePreview(),
     builder: (_) => const MorphingSphereAnimation(),
   ),
   AnimationMeta(
@@ -53,6 +60,8 @@ final List<AnimationMeta> animationRegistry = [
         'Listener + MouseRegion pointer events.',
     tags: const ['IK', 'Gait', 'CustomPaint', 'Interactive'],
     backgroundColor: kBackgroundColor,
+    previewBackground: kBackgroundColor,
+    previewVideoAsset: 'assets/previews/spider_dot_grid.mp4',
     builder: (_) => const SpiderDotGridAnimation(),
   ),
 ];
