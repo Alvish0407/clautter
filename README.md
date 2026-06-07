@@ -133,14 +133,28 @@ See the [Flutter web embedding docs](https://docs.flutter.dev/platform-integrati
 
 ## Design System
 
+A light, friendly, [60fps.design](https://60fps.design/)-inspired system: a soft
+off-white canvas, near-black text, a single dominant blue accent, generously
+rounded corners, and the **Inter** typeface throughout (loaded as a web font in
+`web/index.html`).
+
 | Token | Value | Usage |
 |---|---|---|
-| `AppTheme.background` | `#0A0A0A` | Scaffold background |
-| `AppTheme.surface` | `#141414` | Cards |
-| `AppTheme.surfaceVariant` | `#1E1E1E` | Tag chips |
-| `AppTheme.onSurface` | `#E8E8E8` | Primary text |
-| `AppTheme.onSurfaceMuted` | `#888888` | Secondary text, icons |
-| `AppTheme.accent` | `#FFFFFF` | App bar title, back arrow |
+| `AppTheme.background` | `#F5F5F5` | Scaffold / page canvas |
+| `AppTheme.surface` | `#FFFFFF` | Cards |
+| `AppTheme.surfaceVariant` | `#EFEFEF` | Tag chips |
+| `AppTheme.onSurface` | `#0A0A0A` | Primary text |
+| `AppTheme.onSurfaceMuted` | `#5C5C5C` | Secondary text, descriptions |
+| `AppTheme.primary` | `#0061FE` | Accent — CTAs, links, hover, highlights |
+| `AppTheme.border` | `#EAEAEA` | Card outlines, dividers |
+
+**Shape & spacing:** cards use a `20px` radius, buttons `12px`, chips `8px`. All
+gaps follow a `10px` base grid (`10 / 20 / 30 / 40`).
+
+**Live card previews:** each gallery card renders a real, running animation as
+its thumbnail (no images or videos). An animation may supply an optional
+`previewBuilder` in its `AnimationMeta` to show a controls-free variant in the
+card — see `morphing_sphere/widgets/morph_preview.dart` for an example.
 
 ---
 
