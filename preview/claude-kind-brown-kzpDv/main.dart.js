@@ -35426,10 +35426,10 @@ this.SG()},
 TM(a){var s,r,q,p,o,n,m,l=this
 if(a.i(0,l.r))return
 l.r=a
-s=B.c.fH((a.a-14)/28)+1
-r=B.c.fH((a.b-14)/28)+1
+s=B.c.fH((a.a-9)/18)+1
+r=B.c.fH((a.b-9)/18)+1
 q=A.d([],t.S6)
-for(p=0;p<r;++p)for(o=14+p*28,n=0;n<s;++n){m=new A.j(14+n*28,o)
+for(p=0;p<r;++p)for(o=9+p*18,n=0;n<s;++n){m=new A.j(9+n*18,o)
 q.push(new A.C8(m,m,B.h))}l.f=q
 l.x=!0},
 a01(a){var s,r,q=this
@@ -35446,8 +35446,8 @@ i=n.b
 h=i.a-j.a
 g=i.b-j.b
 f=Math.sqrt(h*h+g*g)
-if(f>0&&f<90){e=1-f/90
-d=e*e*18e3/f
+if(f>0&&f<110){e=1-f/110
+d=e*e*55e3/f
 l+=h*d
 k+=g*d}}m=n.b
 j=m.a
@@ -35458,8 +35458,8 @@ i=i.b
 b=n.c
 a=b.a
 b=b.b
-a0=a+(l-(j-c)*180-a*9)*a3
-a1=b+(k-(m-i)*180-b*9)*a3
+a0=a+(l-(j-c)*35-a*18)*a3
+a1=b+(k-(m-i)*35-b*18)*a3
 n.c=new A.j(a0,a1)
 j+=a0*a3
 m+=a1*a3
@@ -35488,7 +35488,7 @@ $S:0}
 A.a7R.prototype={
 $2(a,b){var s=null,r=new A.I(b.b,b.d),q=this.a
 q.TM(r)
-return A.lG(B.b_,A.rw(s,s,s,new A.F5(q.f,2.2,s),r),q.gZA(),q.gZC(),q.gZE(),s,s,q.gZG())},
+return A.lG(B.b_,A.rw(s,s,s,new A.F5(q.f,1.8,s),r),q.gZA(),q.gZC(),q.gZE(),s,s,q.gZG())},
 $S:131}
 A.zR.prototype={
 l(){var s=this,r=s.bR$
