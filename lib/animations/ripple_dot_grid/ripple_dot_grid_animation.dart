@@ -15,7 +15,7 @@ const double _kGridSpacing = 18.0;
 const double _kDotRadius = 1.8;
 
 /// Radius around a touch point inside which dots are repelled.
-const double _kRepelRadius = 110.0;
+const double _kRepelRadius = 60.0;
 
 /// Peak repulsion acceleration (px/s²) at zero distance.
 /// High value = dots snap away instantly on touch.
@@ -59,10 +59,14 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
   List<DotParticle> _dots = [];
   Size _builtSize = Size.zero;
 
-  /// Active pointer positions keyed by pointer ID.
+  /// Active pointer positions keyed by pointer ID (touch + mouse drag).
   final Map<int, Offset> _pointers = {};
 
-  /// Whether all dots are at rest and no pointers are active.
+  /// Mouse cursor position when hovering without a button held (desktop).
+  /// Null when the cursor is outside the widget.
+  Offset? _mouseHover;
+
+  /// Whether all dots are at rest and no inputs are active.
   bool _allAtRest = true;
 
   @override
@@ -103,7 +107,7 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
 
   void _onTick(Duration elapsed) {
     // Skip physics when nothing is happening.
-    if (_allAtRest && _pointers.isEmpty) return;
+    if (_allAtRest && _pointers.isEmpty && _mouseHover == null) return;
 
     final dt = _lastTime == Duration.zero
         ? 1 / 60
@@ -121,8 +125,12 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
       var fx = 0.0;
       var fy = 0.0;
 
-      // Repulsion from every active touch point.
-      for (final touch in _pointers.values) {
+      // Repulsion from every active input (touch, mouse drag, mouse hover).
+      final allInputs = [
+        ..._pointers.values,
+        if (_mouseHover != null) _mouseHover!,
+      ];
+      for (final touch in allInputs) {
         final dx = dot.pos.dx - touch.dx;
         final dy = dot.pos.dy - touch.dy;
         final distSq = dx * dx + dy * dy;
@@ -153,7 +161,7 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
       if (!dot.isAtRest) anyMoving = true;
     }
 
-    _allAtRest = !anyMoving && _pointers.isEmpty;
+    _allAtRest = !anyMoving && _pointers.isEmpty && _mouseHover == null;
     if (_allAtRest) {
       // Snap every dot exactly to home to avoid floating-point drift.
       for (final dot in _dots) {
@@ -177,6 +185,15 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
   void _onPointerUp(PointerUpEvent e) => _pointers.remove(e.pointer);
   void _onPointerCancel(PointerCancelEvent e) => _pointers.remove(e.pointer);
 
+  void _onMouseHover(PointerHoverEvent e) {
+    _mouseHover = e.localPosition;
+    _allAtRest = false;
+  }
+
+  void _onMouseExit(PointerExitEvent e) {
+    _mouseHover = null;
+  }
+
   // ─── Build ─────────────────────────────────────────────────────────────────
 
   @override
@@ -191,9 +208,13 @@ class _RippleDotGridAnimationState extends State<RippleDotGridAnimation>
           onPointerMove: _onPointerMove,
           onPointerUp: _onPointerUp,
           onPointerCancel: _onPointerCancel,
-          child: CustomPaint(
-            size: size,
-            painter: RipplePainter(dots: _dots, dotRadius: _kDotRadius),
+          onPointerHover: _onMouseHover,
+          child: MouseRegion(
+            onExit: _onMouseExit,
+            child: CustomPaint(
+              size: size,
+              painter: RipplePainter(dots: _dots, dotRadius: _kDotRadius),
+            ),
           ),
         );
       },
