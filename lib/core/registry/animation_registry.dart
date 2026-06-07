@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../animations/morphing_sphere/morphing_sphere_animation.dart';
+import '../../animations/ripple_dot_grid/ripple_dot_grid_animation.dart';
 import '../../animations/morphing_sphere/widgets/morph_preview.dart';
 import '../../animations/spider_dot_grid/models/spider_config.dart';
 import '../../animations/spider_dot_grid/spider_dot_grid_animation.dart';
@@ -30,6 +31,20 @@ final List<AnimationMeta> animationRegistry = [
     previewVideoAsset: 'assets/previews/morphing_sphere.mp4',
     previewBuilder: (_) => const MorphingSpherePreview(),
     builder: (_) => const MorphingSphereAnimation(),
+  ),
+  AnimationMeta(
+    id: 'ripple_dot_grid',
+    title: 'Ripple Dot Grid',
+    description:
+        'A dense grid of dots fills the screen. Touch or drag anywhere to '
+        'push dots aside — each dot springs back to its home position with '
+        'satisfying damped oscillation. Multi-touch is fully supported.',
+    technicalSummary:
+        'Ticker · CustomPaint · spring-mass physics · semi-implicit Euler '
+        'integration · radial repulsion · damped oscillation · multi-pointer '
+        'Listener · idle-skip optimisation.',
+    tags: const ['Physics', 'Interactive', 'CustomPaint', 'Multi-touch'],
+    builder: (_) => const RippleDotGridAnimation(),
   ),
   AnimationMeta(
     id: 'spider_dot_grid',
