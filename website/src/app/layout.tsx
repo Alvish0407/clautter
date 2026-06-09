@@ -15,15 +15,35 @@ const bagel = Bagel_Fat_One({
   display: "swap",
 });
 
+const title = "Clautter · interactive animations built in code";
+const description =
+  "Little interactive animations, built in code. Open one and play with it.";
+
 export const metadata: Metadata = {
-  title: "Clautter · interactive animations built in code",
+  metadataBase: new URL("https://clautter.alvish.in"),
+  title,
   description:
     "A bunch of little interactive animations I built in code. Open any one and play with it right in your browser.",
   openGraph: {
-    title: "Clautter · interactive animations built in code",
-    description:
-      "Little interactive animations, built in code. Open one and play with it.",
+    title,
+    description,
     type: "website",
+    url: "https://clautter.alvish.in",
+    siteName: "Clautter",
+    images: [
+      {
+        url: "/og.png",
+        width: 1200,
+        height: 630,
+        alt: "Clautter, a gallery of interactive animations built in code",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title,
+    description,
+    images: ["/og.png"],
   },
 };
 
