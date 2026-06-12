@@ -91,12 +91,9 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
   double _velocity = 0;
   int? _hoveredIndex;
 
-  // Auto-rotate speed (rad/frame @ 60fps)
-  static const _autoRad = 0.003;
-  // Momentum friction per frame
-  static const _friction = 0.88;
-  // Drag px → rad
-  static const _dragK = 0.006;
+  static const _autoRad = 0.003; // auto-rotate speed (rad/frame)
+  static const _friction = 0.88; // momentum decay per frame
+  static const _dragK = 0.006; // drag px → rad
 
   @override
   void initState() {
@@ -144,7 +141,7 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
                   onHover: (i) => setState(() => _hoveredIndex = i),
                 ),
               ),
-              // Top-left album preview
+              // Top-left album preview (fades in/out on hover)
               Positioned(
                 top: 20,
                 left: 20,
@@ -178,12 +175,16 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
 class _CardInfo {
   final int index;
   final double screenX, screenY, z, scale;
+  // Angular position in the ring — used to rotate each card face outward.
+  final double theta;
+
   const _CardInfo({
     required this.index,
     required this.screenX,
     required this.screenY,
     required this.z,
     required this.scale,
+    required this.theta,
   });
 }
 
@@ -213,11 +214,11 @@ class _Ring extends StatelessWidget {
     final cx = w / 2;
     final cy = h * 0.45;
 
-    // Base card dimensions (at z=0 perspective distance)
+    // Base card dimensions (natural size, scaled per depth)
     const cW = 130.0;
     const cH = 165.0;
 
-    // Project each album into screen space
+    // Project each album card into screen space
     final cards = <_CardInfo>[];
     for (var i = 0; i < n; i++) {
       final theta = i * 2 * pi / n + rotation;
@@ -225,18 +226,26 @@ class _Ring extends StatelessWidget {
       final sinT = sin(theta);
 
       final x3d = R * sinT;
-      // Perspective depth (smaller z = closer = bigger scale)
+      // Depth: smaller z = closer = larger scale.
+      // At theta=0 (front) z is smallest; at theta=π (back) z is largest.
       final z = (focal - R * cosT * cos(tilt)).clamp(1.0, double.infinity);
-      // Vertical offset due to ring tilt (back of ring rises, front drops)
+      // Vertical screen offset from ring tilt (back cards rise, front drop).
       final y3d = R * cosT * sin(tilt);
 
       final sc = focal / z;
       cards.add(
-        _CardInfo(index: i, screenX: cx + x3d * sc, screenY: cy + y3d * sc, z: z, scale: sc),
+        _CardInfo(
+          index: i,
+          screenX: cx + x3d * sc,
+          screenY: cy + y3d * sc,
+          z: z,
+          scale: sc,
+          theta: theta,
+        ),
       );
     }
 
-    // Painter's algorithm: sort back → front so front cards paint on top
+    // Painter's algorithm — draw back cards first so front cards appear on top.
     cards.sort((a, b) => b.z.compareTo(a.z));
 
     return Stack(
@@ -256,14 +265,30 @@ class _Ring extends StatelessWidget {
           child: TweenAnimationBuilder<double>(
             duration: const Duration(milliseconds: 220),
             curve: Curves.easeOut,
-            // Lift the card upward on hover
+            // Hover: lift the card straight up in screen space.
             tween: Tween(end: isHov ? -22.0 : 0.0),
-            builder: (_, lift, child) => Transform.translate(offset: Offset(0, lift), child: child),
-            child: MouseRegion(
-              cursor: SystemMouseCursors.click,
-              onEnter: (_) => onHover(c.index),
-              onExit: (_) => onHover(null),
-              child: _AlbumCard(album: album, scale: c.scale, hovered: isHov),
+            builder: (_, lift, child) => Transform.translate(
+              offset: Offset(0, lift),
+              child: child,
+            ),
+            // Each card is rotated around its Y axis by theta so that it
+            // faces outward from the ring centre — side cards appear edge-on,
+            // front/back cards appear full-width (the "cylinder of pages" look).
+            child: Transform(
+              alignment: Alignment.center,
+              transform: Matrix4.identity()
+                ..setEntry(3, 2, 0.0015) // perspective for the card rotation
+                ..rotateY(c.theta),
+              child: MouseRegion(
+                cursor: SystemMouseCursors.click,
+                onEnter: (_) => onHover(c.index),
+                onExit: (_) => onHover(null),
+                child: _AlbumCard(
+                  album: album,
+                  scale: c.scale,
+                  hovered: isHov,
+                ),
+              ),
             ),
           ),
         );
@@ -279,7 +304,11 @@ class _AlbumCard extends StatelessWidget {
   final double scale;
   final bool hovered;
 
-  const _AlbumCard({required this.album, required this.scale, required this.hovered});
+  const _AlbumCard({
+    required this.album,
+    required this.scale,
+    required this.hovered,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -287,36 +316,34 @@ class _AlbumCard extends StatelessWidget {
       duration: const Duration(milliseconds: 220),
       curve: Curves.easeOut,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(8 * scale.clamp(0.5, 1.5)),
+        borderRadius: BorderRadius.circular(6),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: hovered ? 0.38 : 0.15),
-            blurRadius: (hovered ? 24 : 8) * scale,
+            color: Colors.black.withValues(alpha: hovered ? 0.40 : 0.18),
+            blurRadius: (hovered ? 26 : 10) * scale,
             spreadRadius: hovered ? 2 * scale : 0,
             offset: Offset(0, (hovered ? 10 : 4) * scale),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(8 * scale.clamp(0.5, 1.5)),
+        borderRadius: BorderRadius.circular(6),
         child: RepaintBoundary(
           child: Image.network(
             album.imageUrl,
             fit: BoxFit.cover,
-            errorBuilder: (_, _, _) => ColoredBox(
+            errorBuilder: (_, __, ___) => ColoredBox(
               color: const Color(0xFFEEEEEE),
               child: Center(
                 child: Icon(
                   Icons.music_note_outlined,
                   color: const Color(0xFFAAAAAA),
-                  size: 24 * scale,
+                  size: 22 * scale,
                 ),
               ),
             ),
-            loadingBuilder: (_, child, progress) {
-              if (progress == null) return child;
-              return const ColoredBox(color: Color(0xFFEEEEEE));
-            },
+            loadingBuilder: (_, child, progress) =>
+                progress == null ? child : const ColoredBox(color: Color(0xFFEEEEEE)),
           ),
         ),
       ),
@@ -337,17 +364,17 @@ class _AlbumPreview extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 164,
-          height: 164,
+          width: 160,
+          height: 160,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             boxShadow: const [
-              BoxShadow(color: Color(0x40000000), blurRadius: 28, offset: Offset(0, 12)),
+              BoxShadow(color: Color(0x44000000), blurRadius: 28, offset: Offset(0, 12)),
             ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(12),
-            child: Image.network(album.imageUrl, width: 164, height: 164, fit: BoxFit.cover),
+            child: Image.network(album.imageUrl, width: 160, height: 160, fit: BoxFit.cover),
           ),
         ),
         const SizedBox(height: 10),
@@ -362,7 +389,10 @@ class _AlbumPreview extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 3),
-        Text(album.artist, style: const TextStyle(color: Color(0xFF888888), fontSize: 12)),
+        Text(
+          album.artist,
+          style: const TextStyle(color: Color(0xFF888888), fontSize: 12),
+        ),
       ],
     );
   }
