@@ -5,8 +5,9 @@
 # Run from anywhere; paths are resolved relative to this script.
 #
 # base-href note:
-#   The site is a GitHub Pages project site served under /clautter, so the embed
-#   lives at /clautter/embeds/clautter/. The base-href must match that path.
+#   The site is served from a custom subdomain (clautter.alvish.in) at the root,
+#   so the embed lives at /embeds/clautter/. Branch previews override this via
+#   preview.yml's sed rewrite, which expects exactly this base-href value.
 #
 # Why we delete canvaskit/ afterwards:
 #   `flutter build web` (dart2js + CanvasKit renderer) always ships a full local
@@ -18,7 +19,7 @@
 #   weight and we drop it, taking the embed from ~42 MB to ~3.5 MB.
 set -euo pipefail
 
-BASE_HREF="/clautter/embeds/clautter/"
+BASE_HREF="/embeds/clautter/"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
