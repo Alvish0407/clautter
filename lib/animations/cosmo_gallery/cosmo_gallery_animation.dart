@@ -332,7 +332,7 @@ class _AlbumCard extends StatelessWidget {
           child: Image.network(
             album.imageUrl,
             fit: BoxFit.cover,
-            errorBuilder: (_, __, ___) => ColoredBox(
+            errorBuilder: (context, error, stackTrace) => ColoredBox(
               color: const Color(0xFFEEEEEE),
               child: Center(
                 child: Icon(
