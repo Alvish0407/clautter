@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
-    "build": "next build",
+    "dev": "bash scripts/build-embed.sh && next dev",
+    "build": "bash scripts/build-embed.sh && next build",
     "start": "next start",
     "lint": "eslint",
     "build:embed": "bash scripts/build-embed.sh"
