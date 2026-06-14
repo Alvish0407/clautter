@@ -16,46 +16,170 @@ class _Album {
 
 const _albums = <_Album>[
   _Album('30', 'Adele', 'https://i.scdn.co/image/ab67616d00001e02c6b577e4c4a6d326354a89f7'),
-  _Album('Fine Line', 'Harry Styles', 'https://i.scdn.co/image/ab67616d00001e0225180571abce9472f61bd722'),
+  _Album(
+    'Fine Line',
+    'Harry Styles',
+    'https://i.scdn.co/image/ab67616d00001e0225180571abce9472f61bd722',
+  ),
   _Album('÷', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02ba5db46f4b838ef6027e6f96'),
-  _Album('Up All Night', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e024a5584795dc73860653a9a3e'),
-  _Album('24K Magic', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e02232711f7d66a1e19e89e28c5'),
-  _Album('Moon Music', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e02f40306925074cfdcd8bee61f'),
-  _Album('Voicenotes', 'Charlie Puth', 'https://i.scdn.co/image/ab67616d00001e02897f73256b9128a9d70eaf66'),
-  _Album('Future Nostalgia', 'Dua Lipa', 'https://i.scdn.co/image/ab67616d00001e02c88bae7846e62a8ba59ee0bd'),
-  _Album('Mind of Mine', 'ZAYN', 'https://i.scdn.co/image/ab67616d00001e02b4c42ba7470503094d5a1c5a'),
-  _Album("Harry's House", 'Harry Styles', 'https://i.scdn.co/image/ab67616d00001e0282ce362511fb3d9dda6578ee'),
+  _Album(
+    'Up All Night',
+    'One Direction',
+    'https://i.scdn.co/image/ab67616d00001e024a5584795dc73860653a9a3e',
+  ),
+  _Album(
+    '24K Magic',
+    'Bruno Mars',
+    'https://i.scdn.co/image/ab67616d00001e02232711f7d66a1e19e89e28c5',
+  ),
+  _Album(
+    'Moon Music',
+    'Coldplay',
+    'https://i.scdn.co/image/ab67616d00001e02f40306925074cfdcd8bee61f',
+  ),
+  _Album(
+    'Voicenotes',
+    'Charlie Puth',
+    'https://i.scdn.co/image/ab67616d00001e02897f73256b9128a9d70eaf66',
+  ),
+  _Album(
+    'Future Nostalgia',
+    'Dua Lipa',
+    'https://i.scdn.co/image/ab67616d00001e02c88bae7846e62a8ba59ee0bd',
+  ),
+  _Album(
+    'Mind of Mine',
+    'ZAYN',
+    'https://i.scdn.co/image/ab67616d00001e02b4c42ba7470503094d5a1c5a',
+  ),
+  _Album(
+    "Harry's House",
+    'Harry Styles',
+    'https://i.scdn.co/image/ab67616d00001e0282ce362511fb3d9dda6578ee',
+  ),
   _Album('×', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e0213b3e37318a0c247b550bccd'),
-  _Album('Walls', 'Louis Tomlinson', 'https://i.scdn.co/image/ab67616d00001e02697252e9bf85d4bfaeba4449'),
-  _Album('A Rush of Blood to the Head', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e02de09e02aa7febf30b7c02d82'),
-  _Album('Doo-Wops & Hooligans', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e0239745621c00acfd747c29bea'),
+  _Album(
+    'Walls',
+    'Louis Tomlinson',
+    'https://i.scdn.co/image/ab67616d00001e02697252e9bf85d4bfaeba4449',
+  ),
+  _Album(
+    'A Rush of Blood to the Head',
+    'Coldplay',
+    'https://i.scdn.co/image/ab67616d00001e02de09e02aa7febf30b7c02d82',
+  ),
+  _Album(
+    'Doo-Wops & Hooligans',
+    'Bruno Mars',
+    'https://i.scdn.co/image/ab67616d00001e0239745621c00acfd747c29bea',
+  ),
   _Album('25', 'Adele', 'https://i.scdn.co/image/ab67616d00001e0247ce408fb4926d69da6713c2'),
-  _Album('Nine Track Mind', 'Charlie Puth', 'https://i.scdn.co/image/ab67616d00001e0215145482a542a9adb282250b'),
-  _Album('Take Me Home', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e024e31e0d38b89b8fb239d4fbf'),
+  _Album(
+    'Nine Track Mind',
+    'Charlie Puth',
+    'https://i.scdn.co/image/ab67616d00001e0215145482a542a9adb282250b',
+  ),
+  _Album(
+    'Take Me Home',
+    'One Direction',
+    'https://i.scdn.co/image/ab67616d00001e024e31e0d38b89b8fb239d4fbf',
+  ),
   _Album('=', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02dc806722f6802a8ea9953c89'),
-  _Album('Radical Optimism', 'Dua Lipa', 'https://i.scdn.co/image/ab67616d00001e022f8790ed72296c2614607575'),
-  _Album('The Romantic', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e023eb8dc748f7efb1470f74395'),
+  _Album(
+    'Radical Optimism',
+    'Dua Lipa',
+    'https://i.scdn.co/image/ab67616d00001e022f8790ed72296c2614607575',
+  ),
+  _Album(
+    'The Romantic',
+    'Bruno Mars',
+    'https://i.scdn.co/image/ab67616d00001e023eb8dc748f7efb1470f74395',
+  ),
   _Album('X&Y', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e024e0362c225863f6ae2432651'),
-  _Album('Harry Styles', 'Harry Styles', 'https://i.scdn.co/image/ab67616d00001e023f8b8a9c71b2bd2f3019940b'),
+  _Album(
+    'Harry Styles',
+    'Harry Styles',
+    'https://i.scdn.co/image/ab67616d00001e023f8b8a9c71b2bd2f3019940b',
+  ),
   _Album('+', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e026567a393a964a845a89b7f70'),
   _Album('21', 'Adele', 'https://i.scdn.co/image/ab67616d00001e027e7e5dd9d1ab19fcded8a17f'),
-  _Album('Faith In The Future', 'Louis Tomlinson', 'https://i.scdn.co/image/ab67616d00001e02a4227b7f8b532ded84e7c76a'),
-  _Album('Midnight Memories', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e023cf0191cca87a4bc7e34bc4a'),
-  _Album('Future Nostalgia\n(Moonlight Edition)', 'Dua Lipa', 'https://i.scdn.co/image/ab67616d00001e02d85ec490b441a6444a736cc3'),
-  _Album('An Evening With Silk Sonic', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e025f19f50677f8ded7021b8229'),
-  _Album('A Head Full of Dreams', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e028ff7c3580d429c8212b9a3b6'),
-  _Album('No.6 Collaborations', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02f528fc2d5d8b26e4e3413715'),
-  _Album("Whatever's Clever!", 'Charlie Puth', 'https://i.scdn.co/image/ab67616d00001e02391d8b7f4d327cb0ec4f0aef'),
+  _Album(
+    'Faith In The Future',
+    'Louis Tomlinson',
+    'https://i.scdn.co/image/ab67616d00001e02a4227b7f8b532ded84e7c76a',
+  ),
+  _Album(
+    'Midnight Memories',
+    'One Direction',
+    'https://i.scdn.co/image/ab67616d00001e023cf0191cca87a4bc7e34bc4a',
+  ),
+  _Album(
+    'Future Nostalgia\n(Moonlight Edition)',
+    'Dua Lipa',
+    'https://i.scdn.co/image/ab67616d00001e02d85ec490b441a6444a736cc3',
+  ),
+  _Album(
+    'An Evening With Silk Sonic',
+    'Bruno Mars',
+    'https://i.scdn.co/image/ab67616d00001e025f19f50677f8ded7021b8229',
+  ),
+  _Album(
+    'A Head Full of Dreams',
+    'Coldplay',
+    'https://i.scdn.co/image/ab67616d00001e028ff7c3580d429c8212b9a3b6',
+  ),
+  _Album(
+    'No.6 Collaborations',
+    'Ed Sheeran',
+    'https://i.scdn.co/image/ab67616d00001e02f528fc2d5d8b26e4e3413715',
+  ),
+  _Album(
+    "Whatever's Clever!",
+    'Charlie Puth',
+    'https://i.scdn.co/image/ab67616d00001e02391d8b7f4d327cb0ec4f0aef',
+  ),
   _Album('19', 'Adele', 'https://i.scdn.co/image/ab67616d00001e0262e62cf225b72fca8d765168'),
-  _Album('FOUR', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e0234a29f220057810cce98e1b4'),
-  _Album('Unorthodox Jukebox', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e0249055dce3554e72e82082980'),
-  _Album('Music of the Spheres', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e02d5d34557fa33c03782d3e730'),
-  _Album('Autumn Variations', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02cfedd56771ae0e9217762eb7'),
-  _Album('Made In The A.M.', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e024a075ca70ae4143a37eb4fbe'),
+  _Album(
+    'FOUR',
+    'One Direction',
+    'https://i.scdn.co/image/ab67616d00001e0234a29f220057810cce98e1b4',
+  ),
+  _Album(
+    'Unorthodox Jukebox',
+    'Bruno Mars',
+    'https://i.scdn.co/image/ab67616d00001e0249055dce3554e72e82082980',
+  ),
+  _Album(
+    'Music of the Spheres',
+    'Coldplay',
+    'https://i.scdn.co/image/ab67616d00001e02d5d34557fa33c03782d3e730',
+  ),
+  _Album(
+    'Autumn Variations',
+    'Ed Sheeran',
+    'https://i.scdn.co/image/ab67616d00001e02cfedd56771ae0e9217762eb7',
+  ),
+  _Album(
+    'Made In The A.M.',
+    'One Direction',
+    'https://i.scdn.co/image/ab67616d00001e024a075ca70ae4143a37eb4fbe',
+  ),
   _Album('Play', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02b07c28bb3192bdfb585fb438'),
-  _Album('How Did I Get Here?', 'Louis Tomlinson', 'https://i.scdn.co/image/ab67616d00001e02deeb72c504e2a0f474ca5e41'),
-  _Album('Everyday Life', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e02722d16eb3b31fae9cb1d2ada'),
-  _Album('+-=÷× Tour (Live)', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02c2ca06104c4b04a034952aaa'),
+  _Album(
+    'How Did I Get Here?',
+    'Louis Tomlinson',
+    'https://i.scdn.co/image/ab67616d00001e02deeb72c504e2a0f474ca5e41',
+  ),
+  _Album(
+    'Everyday Life',
+    'Coldplay',
+    'https://i.scdn.co/image/ab67616d00001e02722d16eb3b31fae9cb1d2ada',
+  ),
+  _Album(
+    '+-=÷× Tour (Live)',
+    'Ed Sheeran',
+    'https://i.scdn.co/image/ab67616d00001e02c2ca06104c4b04a034952aaa',
+  ),
 ];
 
 // ── Card layout data ──────────────────────────────────────────────────────────
@@ -133,7 +257,7 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
     final n = _albums.length;
     final R = w * 0.32;
     final focal = w * 0.72;
-    const tilt = 0.3;
+    const tilt = 0.25;
     final cx = w / 2;
     final cy = h * 0.45;
 
@@ -156,8 +280,8 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
 
   // Approximate hit test: use cos(theta) to estimate visible card width.
   int? _hitTest(List<_CardInfo> sortedBackToFront, Offset pos) {
-    const cW = 130.0;
-    const cH = 130.0;
+    const cW = 100.0;
+    const cH = 100.0;
     for (final c in sortedBackToFront.reversed) {
       final lift = (_liftProgress[c.index] ?? 0.0) * 22.0;
       final visW = cW * c.scale * cos(c.theta).abs().clamp(0.12, 1.0);
@@ -199,22 +323,24 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
                 builder: (_, constraints) {
                   final size = Size(constraints.maxWidth, constraints.maxHeight);
                   final cards = _computeCards(size)..sort((a, b) => b.z.compareTo(a.z));
-                  return MouseRegion(
-                    cursor: SystemMouseCursors.basic,
-                    onHover: (e) {
-                      final hit = _hitTest(cards, e.localPosition);
-                      if (hit != _hoveredIndex) setState(() => _hoveredIndex = hit);
-                    },
-                    onExit: (_) {
-                      if (_hoveredIndex != null) setState(() => _hoveredIndex = null);
-                    },
-                    child: CustomPaint(
-                      size: size,
-                      painter: _RingPainter(
-                        cards: cards,
-                        images: _images,
-                        liftProgress: Map.of(_liftProgress),
-                        hoveredIndex: _hoveredIndex,
+                  return Center(
+                    child: MouseRegion(
+                      cursor: SystemMouseCursors.basic,
+                      onHover: (e) {
+                        final hit = _hitTest(cards, e.localPosition);
+                        if (hit != _hoveredIndex) setState(() => _hoveredIndex = hit);
+                      },
+                      onExit: (_) {
+                        if (_hoveredIndex != null) setState(() => _hoveredIndex = null);
+                      },
+                      child: CustomPaint(
+                        size: size,
+                        painter: _RingPainter(
+                          cards: cards,
+                          images: _images,
+                          liftProgress: Map.of(_liftProgress),
+                          hoveredIndex: _hoveredIndex,
+                        ),
                       ),
                     ),
                   );
@@ -247,8 +373,8 @@ class _RingPainter extends CustomPainter {
   final Map<int, double> liftProgress;
   final int? hoveredIndex;
 
-  static const _cW = 130.0;
-  static const _cH = 130.0;
+  static const _cW = 100.0;
+  static const _cH = 100.0;
 
   const _RingPainter({
     required this.cards,
@@ -337,8 +463,8 @@ class _AlbumPreview extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         Container(
-          width: 160,
-          height: 160,
+          width: 130,
+          height: 130,
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(12),
             boxShadow: const [
