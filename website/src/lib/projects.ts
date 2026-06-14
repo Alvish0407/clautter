@@ -37,7 +37,7 @@ export const projects: Project[] = [
       "Image.network + RepaintBoundary caching",
       "AnimatedSwitcher preview overlay",
     ],
-    video: "",
+    video: asset("/previews/3d_cosmo_album_gallery.mp4"),
     previewBg: "#ffffff",
     dark: false,
   },
