@@ -15,137 +15,50 @@ class _Album {
 }
 
 const _albums = <_Album>[
-  // Ed Sheeran — required
-  _Album('÷', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02ba5db46f4b838ef6027e6f96'),
-  _Album('×', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e0213b3e37318a0c247b550bccd'),
-  _Album('=', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02dc806722f6802a8ea9953c89'),
-  _Album(
-    'No.6 Collaborations',
-    'Ed Sheeran',
-    'https://i.scdn.co/image/ab67616d00001e02f528fc2d5d8b26e4e3413715',
-  ),
-  _Album('Play', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02b07c28bb3192bdfb585fb438'),
-  // Dua Lipa
-  _Album(
-    'Future Nostalgia',
-    'Dua Lipa',
-    'https://i.scdn.co/image/ab67616d00001e02c88bae7846e62a8ba59ee0bd',
-  ),
-  _Album(
-    'Future Nostalgia\n(Moonlight Edition)',
-    'Dua Lipa',
-    'https://i.scdn.co/image/ab67616d00001e02d85ec490b441a6444a736cc3',
-  ),
-  // Harry Styles
-  _Album(
-    'Fine Line',
-    'Harry Styles',
-    'https://i.scdn.co/image/ab67616d00001e0225180571abce9472f61bd722',
-  ),
-  _Album(
-    "Harry's House",
-    'Harry Styles',
-    'https://i.scdn.co/image/ab67616d00001e0282ce362511fb3d9dda6578ee',
-  ),
-  _Album(
-    'Harry Styles',
-    'Harry Styles',
-    'https://i.scdn.co/image/ab67616d00001e023f8b8a9c71b2bd2f3019940b',
-  ),
-  // Coldplay
-  _Album(
-    'Moon Music',
-    'Coldplay',
-    'https://i.scdn.co/image/ab67616d00001e02f40306925074cfdcd8bee61f',
-  ),
-  // Bruno Mars
-  _Album(
-    '24K Magic',
-    'Bruno Mars',
-    'https://i.scdn.co/image/ab67616d00001e02232711f7d66a1e19e89e28c5',
-  ),
-  _Album(
-    'The Romantic',
-    'Bruno Mars',
-    'https://i.scdn.co/image/ab67616d00001e023eb8dc748f7efb1470f74395',
-  ),
-  // Adele
   _Album('30', 'Adele', 'https://i.scdn.co/image/ab67616d00001e02c6b577e4c4a6d326354a89f7'),
-  _Album('25', 'Adele', 'https://i.scdn.co/image/ab67616d00001e0247ce408fb4926d69da6713c2'),
-  _Album('21', 'Adele', 'https://i.scdn.co/image/ab67616d00001e027e7e5dd9d1ab19fcded8a17f'),
-  _Album('19', 'Adele', 'https://i.scdn.co/image/ab67616d00001e0262e62cf225b72fca8d765168'),
-  // Ed Sheeran (more)
-  _Album('+', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e026567a393a964a845a89b7f70'),
-  _Album('Autumn Variations', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02cfedd56771ae0e9217762eb7'),
-  _Album('+-=÷× Tour (Live)', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02c2ca06104c4b04a034952aaa'),
-  // Dua Lipa (more)
-  _Album('Radical Optimism', 'Dua Lipa', 'https://i.scdn.co/image/ab67616d00001e022f8790ed72296c2614607575'),
-  // Bruno Mars (more)
-  _Album('Doo-Wops & Hooligans', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e0239745621c00acfd747c29bea'),
-  _Album('Unorthodox Jukebox', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e0249055dce3554e72e82082980'),
-  _Album(
-    'An Evening With Silk Sonic',
-    'Bruno Mars',
-    'https://i.scdn.co/image/ab67616d00001e025f19f50677f8ded7021b8229',
-  ),
-  // Coldplay (more)
-  _Album(
-    'A Rush of Blood to the Head',
-    'Coldplay',
-    'https://i.scdn.co/image/ab67616d00001e02de09e02aa7febf30b7c02d82',
-  ),
-  _Album('X&Y', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e024e0362c225863f6ae2432651'),
-  _Album(
-    'A Head Full of Dreams',
-    'Coldplay',
-    'https://i.scdn.co/image/ab67616d00001e028ff7c3580d429c8212b9a3b6',
-  ),
-  _Album(
-    'Music of the Spheres',
-    'Coldplay',
-    'https://i.scdn.co/image/ab67616d00001e02d5d34557fa33c03782d3e730',
-  ),
-  _Album('Everyday Life', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e02722d16eb3b31fae9cb1d2ada'),
-  // One Direction
+  _Album('Fine Line', 'Harry Styles', 'https://i.scdn.co/image/ab67616d00001e0225180571abce9472f61bd722'),
+  _Album('÷', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02ba5db46f4b838ef6027e6f96'),
   _Album('Up All Night', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e024a5584795dc73860653a9a3e'),
-  _Album('Take Me Home', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e024e31e0d38b89b8fb239d4fbf'),
-  _Album(
-    'Midnight Memories',
-    'One Direction',
-    'https://i.scdn.co/image/ab67616d00001e023cf0191cca87a4bc7e34bc4a',
-  ),
-  _Album(
-    'Made In The A.M.',
-    'One Direction',
-    'https://i.scdn.co/image/ab67616d00001e024a075ca70ae4143a37eb4fbe',
-  ),
-  _Album('FOUR', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e0234a29f220057810cce98e1b4'),
-  // ZAYN
-  _Album('Mind of Mine', 'ZAYN', 'https://i.scdn.co/image/ab67616d00001e02b4c42ba7470503094d5a1c5a'),
-  // Louis Tomlinson
-  _Album('Walls', 'Louis Tomlinson', 'https://i.scdn.co/image/ab67616d00001e02697252e9bf85d4bfaeba4449'),
-  _Album(
-    'Faith In The Future',
-    'Louis Tomlinson',
-    'https://i.scdn.co/image/ab67616d00001e02a4227b7f8b532ded84e7c76a',
-  ),
-  _Album(
-    'How Did I Get Here?',
-    'Louis Tomlinson',
-    'https://i.scdn.co/image/ab67616d00001e02deeb72c504e2a0f474ca5e41',
-  ),
-  // Charlie Puth
+  _Album('24K Magic', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e02232711f7d66a1e19e89e28c5'),
+  _Album('Moon Music', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e02f40306925074cfdcd8bee61f'),
   _Album('Voicenotes', 'Charlie Puth', 'https://i.scdn.co/image/ab67616d00001e02897f73256b9128a9d70eaf66'),
+  _Album('Future Nostalgia', 'Dua Lipa', 'https://i.scdn.co/image/ab67616d00001e02c88bae7846e62a8ba59ee0bd'),
+  _Album('Mind of Mine', 'ZAYN', 'https://i.scdn.co/image/ab67616d00001e02b4c42ba7470503094d5a1c5a'),
+  _Album("Harry's House", 'Harry Styles', 'https://i.scdn.co/image/ab67616d00001e0282ce362511fb3d9dda6578ee'),
+  _Album('×', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e0213b3e37318a0c247b550bccd'),
+  _Album('Walls', 'Louis Tomlinson', 'https://i.scdn.co/image/ab67616d00001e02697252e9bf85d4bfaeba4449'),
+  _Album('A Rush of Blood to the Head', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e02de09e02aa7febf30b7c02d82'),
+  _Album('Doo-Wops & Hooligans', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e0239745621c00acfd747c29bea'),
+  _Album('25', 'Adele', 'https://i.scdn.co/image/ab67616d00001e0247ce408fb4926d69da6713c2'),
   _Album('Nine Track Mind', 'Charlie Puth', 'https://i.scdn.co/image/ab67616d00001e0215145482a542a9adb282250b'),
-  _Album(
-    "Whatever's Clever!",
-    'Charlie Puth',
-    'https://i.scdn.co/image/ab67616d00001e02391d8b7f4d327cb0ec4f0aef',
-  ),
+  _Album('Take Me Home', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e024e31e0d38b89b8fb239d4fbf'),
+  _Album('=', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02dc806722f6802a8ea9953c89'),
+  _Album('Radical Optimism', 'Dua Lipa', 'https://i.scdn.co/image/ab67616d00001e022f8790ed72296c2614607575'),
+  _Album('The Romantic', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e023eb8dc748f7efb1470f74395'),
+  _Album('X&Y', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e024e0362c225863f6ae2432651'),
+  _Album('Harry Styles', 'Harry Styles', 'https://i.scdn.co/image/ab67616d00001e023f8b8a9c71b2bd2f3019940b'),
+  _Album('+', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e026567a393a964a845a89b7f70'),
+  _Album('21', 'Adele', 'https://i.scdn.co/image/ab67616d00001e027e7e5dd9d1ab19fcded8a17f'),
+  _Album('Faith In The Future', 'Louis Tomlinson', 'https://i.scdn.co/image/ab67616d00001e02a4227b7f8b532ded84e7c76a'),
+  _Album('Midnight Memories', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e023cf0191cca87a4bc7e34bc4a'),
+  _Album('Future Nostalgia\n(Moonlight Edition)', 'Dua Lipa', 'https://i.scdn.co/image/ab67616d00001e02d85ec490b441a6444a736cc3'),
+  _Album('An Evening With Silk Sonic', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e025f19f50677f8ded7021b8229'),
+  _Album('A Head Full of Dreams', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e028ff7c3580d429c8212b9a3b6'),
+  _Album('No.6 Collaborations', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02f528fc2d5d8b26e4e3413715'),
+  _Album("Whatever's Clever!", 'Charlie Puth', 'https://i.scdn.co/image/ab67616d00001e02391d8b7f4d327cb0ec4f0aef'),
+  _Album('19', 'Adele', 'https://i.scdn.co/image/ab67616d00001e0262e62cf225b72fca8d765168'),
+  _Album('FOUR', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e0234a29f220057810cce98e1b4'),
+  _Album('Unorthodox Jukebox', 'Bruno Mars', 'https://i.scdn.co/image/ab67616d00001e0249055dce3554e72e82082980'),
+  _Album('Music of the Spheres', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e02d5d34557fa33c03782d3e730'),
+  _Album('Autumn Variations', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02cfedd56771ae0e9217762eb7'),
+  _Album('Made In The A.M.', 'One Direction', 'https://i.scdn.co/image/ab67616d00001e024a075ca70ae4143a37eb4fbe'),
+  _Album('Play', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02b07c28bb3192bdfb585fb438'),
+  _Album('How Did I Get Here?', 'Louis Tomlinson', 'https://i.scdn.co/image/ab67616d00001e02deeb72c504e2a0f474ca5e41'),
+  _Album('Everyday Life', 'Coldplay', 'https://i.scdn.co/image/ab67616d00001e02722d16eb3b31fae9cb1d2ada'),
+  _Album('+-=÷× Tour (Live)', 'Ed Sheeran', 'https://i.scdn.co/image/ab67616d00001e02c2ca06104c4b04a034952aaa'),
 ];
 
 // ── Card layout data ──────────────────────────────────────────────────────────
-
 class _CardInfo {
   final int index;
   final double screenX, screenY, z, scale, theta;
@@ -177,7 +90,7 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
   final List<ui.Image?> _images = List.filled(_albums.length, null);
   final Map<int, double> _liftProgress = {};
 
-  static const _autoRad = 0.003;
+  static const _autoRad = 0.0005;
   static const _friction = 0.88;
   static const _dragK = 0.006;
 
@@ -188,7 +101,7 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
     _ticker = createTicker((_) {
       _velocity *= _friction;
       final useAuto = _velocity.abs() < 0.0003;
-      _rotation += useAuto ? _autoRad : _velocity;
+      _rotation -= useAuto ? _autoRad : _velocity;
       if (useAuto) _velocity = 0;
 
       for (var i = 0; i < _albums.length; i++) {
@@ -207,12 +120,9 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
       final idx = i;
       final stream = NetworkImage(_albums[idx].imageUrl).resolve(ImageConfiguration.empty);
       stream.addListener(
-        ImageStreamListener(
-          (info, _) {
-            if (mounted) setState(() => _images[idx] = info.image);
-          },
-          onError: (e, _) {},
-        ),
+        ImageStreamListener((info, _) {
+          if (mounted) setState(() => _images[idx] = info.image);
+        }, onError: (e, _) {}),
       );
     }
   }
@@ -223,7 +133,7 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
     final n = _albums.length;
     final R = w * 0.32;
     final focal = w * 0.72;
-    const tilt = 0.35;
+    const tilt = 0.3;
     final cx = w / 2;
     final cy = h * 0.45;
 
@@ -247,15 +157,14 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
   // Approximate hit test: use cos(theta) to estimate visible card width.
   int? _hitTest(List<_CardInfo> sortedBackToFront, Offset pos) {
     const cW = 130.0;
-    const cH = 165.0;
+    const cH = 130.0;
     for (final c in sortedBackToFront.reversed) {
       final lift = (_liftProgress[c.index] ?? 0.0) * 22.0;
       final visW = cW * c.scale * cos(c.theta).abs().clamp(0.12, 1.0);
       final ch = cH * c.scale;
       final left = c.screenX - visW / 2;
       final top = c.screenY - ch / 2 - lift;
-      if (pos.dx >= left && pos.dx <= left + visW &&
-          pos.dy >= top && pos.dy <= top + ch) {
+      if (pos.dx >= left && pos.dx <= left + visW && pos.dy >= top && pos.dy <= top + ch) {
         return c.index;
       }
     }
@@ -279,8 +188,8 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
       child: GestureDetector(
         behavior: HitTestBehavior.opaque,
         onPanUpdate: (d) => setState(() {
-          _velocity = d.delta.dx * _dragK;
-          _rotation += _velocity;
+          _velocity = -d.delta.dx * _dragK;
+          _rotation -= _velocity;
         }),
         child: ColoredBox(
           color: Colors.white,
@@ -289,8 +198,7 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
               LayoutBuilder(
                 builder: (_, constraints) {
                   final size = Size(constraints.maxWidth, constraints.maxHeight);
-                  final cards = _computeCards(size)
-                    ..sort((a, b) => b.z.compareTo(a.z));
+                  final cards = _computeCards(size)..sort((a, b) => b.z.compareTo(a.z));
                   return MouseRegion(
                     cursor: SystemMouseCursors.basic,
                     onHover: (e) {
@@ -314,19 +222,10 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
               ),
               Positioned(
                 top: 20,
-                left: 20,
+                left: 50,
                 child: AnimatedSwitcher(
                   duration: const Duration(milliseconds: 220),
-                  transitionBuilder: (child, anim) => FadeTransition(
-                    opacity: anim,
-                    child: SlideTransition(
-                      position: Tween<Offset>(
-                        begin: const Offset(0, 0.04),
-                        end: Offset.zero,
-                      ).animate(CurvedAnimation(parent: anim, curve: Curves.easeOut)),
-                      child: child,
-                    ),
-                  ),
+                  transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
                   child: _hoveredIndex != null
                       ? _AlbumPreview(key: ValueKey(_hoveredIndex), album: _albums[_hoveredIndex!])
                       : const SizedBox.shrink(key: ValueKey<int>(-1)),
@@ -349,7 +248,7 @@ class _RingPainter extends CustomPainter {
   final int? hoveredIndex;
 
   static const _cW = 130.0;
-  static const _cH = 165.0;
+  static const _cH = 130.0;
 
   const _RingPainter({
     required this.cards,
@@ -358,16 +257,27 @@ class _RingPainter extends CustomPainter {
     required this.hoveredIndex,
   });
 
+  // cosT: +1 = front (6 o'clock), -1 = back (12 o'clock).
+  // Fade starts at ~10/2 o'clock (cosT ≈ -0.5) → 0.1 transparent at 12 o'clock.
+  static double _cardOpacity(double theta) {
+    final cosT = cos(theta);
+    if (cosT >= -0.55) return 1.0;
+    final t = (cosT + 0.55) / (-0.55); // 0 at cosT=-0.5, 1 at cosT=-1
+    return (1.0 - t * t).clamp(0.2, 1.0); // quadratic ease-in
+  }
+
+  // cosT: +1 = front (6 o'clock) → -0.2 rad tilt; -1 = back (12 o'clock) → 0 tilt.
+  static double _cardRotation(double theta) => -0.1 * (cos(theta) + 1);
+
   @override
   void paint(Canvas canvas, Size size) {
     final imgPaint = Paint()..filterQuality = FilterQuality.medium;
-    final placeholderPaint = Paint()..color = const Color(0xFFEEEEEE);
-    final shadowPaint = Paint();
+    final placeholderPaint = Paint();
 
     for (final c in cards) {
       final img = images[c.index];
       final lift = (liftProgress[c.index] ?? 0.0) * 22.0;
-      final isHov = hoveredIndex == c.index;
+      final opacity = _cardOpacity(c.theta);
       final cw = _cW * c.scale;
       final ch = _cH * c.scale;
       final cardRect = Rect.fromCenter(center: Offset.zero, width: cw, height: ch);
@@ -376,25 +286,24 @@ class _RingPainter extends CustomPainter {
       canvas.translate(c.screenX, c.screenY - lift);
 
       final m = Matrix4.identity()
-        ..setEntry(3, 2, 0.0015)
-        ..rotateY(c.theta);
+        ..rotateX(_cardRotation(c.theta))
+        // ..setEntry(3, 2, 0.001)
+        ..rotateY(c.theta + 300);
       canvas.transform(m.storage);
-
-      // Shadow drawn before clip so it spills outside the rounded rect.
-      shadowPaint
-        ..color = Colors.black.withValues(alpha: isHov ? 0.40 : 0.18)
-        ..maskFilter = MaskFilter.blur(BlurStyle.normal, (isHov ? 26.0 : 10.0) * c.scale);
-      canvas.drawRRect(
-        RRect.fromRectAndRadius(
-          Rect.fromCenter(center: Offset(0, (isHov ? 10.0 : 4.0) * c.scale), width: cw, height: ch),
-          const Radius.circular(6),
-        ),
-        shadowPaint,
-      );
 
       // Clip to rounded corners then draw image / placeholder.
       canvas.clipRRect(RRect.fromRectAndRadius(cardRect, const Radius.circular(6)));
       if (img != null) {
+        // White overlay (opaque) instead of transparency — prevents cards behind bleeding through.
+        if (opacity < 1.0) {
+          final whiteAlpha = ((1.0 - opacity) * 255).round().clamp(0, 255);
+          imgPaint.colorFilter = ColorFilter.mode(
+            Color.fromARGB(whiteAlpha, 255, 255, 255),
+            BlendMode.srcOver,
+          );
+        } else {
+          imgPaint.colorFilter = null;
+        }
         canvas.drawImageRect(
           img,
           Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
@@ -402,6 +311,8 @@ class _RingPainter extends CustomPainter {
           imgPaint,
         );
       } else {
+        final grey = (0xEE + (0xFF - 0xEE) * (1.0 - opacity)).round();
+        placeholderPaint.color = Color.fromARGB(255, grey, grey, grey);
         canvas.drawRect(cardRect, placeholderPaint);
       }
 
@@ -451,10 +362,7 @@ class _AlbumPreview extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 3),
-        Text(
-          album.artist,
-          style: const TextStyle(color: Color(0xFF888888), fontSize: 12),
-        ),
+        Text(album.artist, style: const TextStyle(color: Color(0xFF888888), fontSize: 12)),
       ],
     );
   }
