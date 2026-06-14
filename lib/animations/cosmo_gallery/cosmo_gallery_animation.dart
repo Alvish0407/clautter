@@ -73,6 +73,72 @@ const _albums = <_Album>[
   _Album('25', 'Adele', 'https://i.scdn.co/image/ab67616d00001e0247ce408fb4926d69da6713c2'),
   _Album('21', 'Adele', 'https://i.scdn.co/image/ab67616d00001e027e7e5dd9d1ab19fcded8a17f'),
   _Album('19', 'Adele', 'https://i.scdn.co/image/ab67616d00001e0262e62cf225b72fca8d765168'),
+  // Taylor Swift
+  _Album('Midnights', 'Taylor Swift', 'https://i.scdn.co/image/ab67616d00001e02e0b60c4b88d3d4527267d04a'),
+  _Album('Lover', 'Taylor Swift', 'https://i.scdn.co/image/ab67616d00001e022b46e5b76993c4f168cef38e'),
+  _Album('folklore', 'Taylor Swift', 'https://i.scdn.co/image/ab67616d00001e02c288028f1f4ec87aa10bbb55'),
+  _Album('evermore', 'Taylor Swift', 'https://i.scdn.co/image/ab67616d00001e02956bd4cfadd2d2e91440bdd6'),
+  _Album('reputation', 'Taylor Swift', 'https://i.scdn.co/image/ab67616d00001e02da5d5aecca5a7b73ad8e32b3'),
+  _Album("1989 (Taylor's Version)", 'Taylor Swift', 'https://i.scdn.co/image/ab67616d00001e023b14834b25adfc1bcf59bd6e'),
+  // The Weeknd
+  _Album('After Hours', 'The Weeknd', 'https://i.scdn.co/image/ab67616d00001e028863bc11d2aa12b54f5aeb36'),
+  _Album('Dawn FM', 'The Weeknd', 'https://i.scdn.co/image/ab67616d00001e025f5c4df8ea9b8d1a5a8a45c3'),
+  _Album('Starboy', 'The Weeknd', 'https://i.scdn.co/image/ab67616d00001e025184e25a92b24547a4e4e4ce'),
+  _Album(
+    'Beauty Behind the Madness',
+    'The Weeknd',
+    'https://i.scdn.co/image/ab67616d00001e0237c0eeb64b85b6efe80d2abe',
+  ),
+  // Billie Eilish
+  _Album(
+    'HIT ME HARD AND SOFT',
+    'Billie Eilish',
+    'https://i.scdn.co/image/ab67616d00001e021d77aa6e3dc03f2778fc71e7',
+  ),
+  _Album(
+    'Happier Than Ever',
+    'Billie Eilish',
+    'https://i.scdn.co/image/ab67616d00001e024ae5b19e16c4ce74eab8eb5e',
+  ),
+  _Album(
+    'When We All Fall Asleep,\nWhere Do We Go?',
+    'Billie Eilish',
+    'https://i.scdn.co/image/ab67616d00001e02c5649add75df29581d5cc38c',
+  ),
+  // Ariana Grande
+  _Album('thank u, next', 'Ariana Grande', 'https://i.scdn.co/image/ab67616d00001e0247bfe2cbadc8a876e0b36f27'),
+  _Album('positions', 'Ariana Grande', 'https://i.scdn.co/image/ab67616d00001e02f39bd8898e3b2c620e71b6fd'),
+  _Album('sweetener', 'Ariana Grande', 'https://i.scdn.co/image/ab67616d00001e0218db14eb716bcac1ae7e80e2'),
+  // Olivia Rodrigo
+  _Album('SOUR', 'Olivia Rodrigo', 'https://i.scdn.co/image/ab67616d00001e02a91c10fe9472d9ae2cd59281'),
+  _Album('GUTS', 'Olivia Rodrigo', 'https://i.scdn.co/image/ab67616d00001e028cf41cf09d9d6de4e4a99f47'),
+  // Beyoncé
+  _Album('Renaissance', 'Beyoncé', 'https://i.scdn.co/image/ab67616d00001e02c94ff11f90bfa7ddb6b2a7a0'),
+  _Album('Lemonade', 'Beyoncé', 'https://i.scdn.co/image/ab67616d00001e02b0fe40240f37b92ab84c23ee'),
+  // Bad Bunny
+  _Album('Un Verano Sin Ti', 'Bad Bunny', 'https://i.scdn.co/image/ab67616d00001e02b33d56c2f53d48b40abef8ff'),
+  _Album(
+    'NADIE SABE LO QUE\nVA A PASAR MAÑANA',
+    'Bad Bunny',
+    'https://i.scdn.co/image/ab67616d00001e027b5c7d3ddb6f4b50a4440a3b',
+  ),
+  // Kendrick Lamar
+  _Album('DAMN.', 'Kendrick Lamar', 'https://i.scdn.co/image/ab67616d00001e02cc78023e42b01b07ccff40c1'),
+  _Album(
+    'Mr. Morale &\nThe Big Steppers',
+    'Kendrick Lamar',
+    'https://i.scdn.co/image/ab67616d00001e020a7a63b7c8f43f6e7fdd8a2c',
+  ),
+  // SZA
+  _Album('SOS', 'SZA', 'https://i.scdn.co/image/ab67616d00001e029b8b43b8b2b2f3b6b7e7a78c'),
+  // Post Malone
+  _Album(
+    "Hollywood's Bleeding",
+    'Post Malone',
+    'https://i.scdn.co/image/ab67616d00001e02dc1fbbf3bd17a17b80b7614d',
+  ),
+  // Rihanna
+  _Album('Anti', 'Rihanna', 'https://i.scdn.co/image/ab67616d00001e02c1c4b24d50a3c7f5bf47e08a'),
 ];
 
 // ── Main widget ───────────────────────────────────────────────────────────────
