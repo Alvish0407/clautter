@@ -21,6 +21,27 @@ export type Project = {
 
 export const projects: Project[] = [
   {
+    id: "cosmo_gallery",
+    title: "3D Cosmo Album Gallery",
+    blurb:
+      "Spotify album covers arranged in a spinning 3D ring. Each poster is physically rotated in 3D space — side cards appear edge-on, front cards face you. Drag or scroll to spin it.",
+    description:
+      "A ring of album art posters arranged around a perspective-projected 3D circle. Each card is individually rotated around its Y axis so it faces outward from the ring centre — giving the look of pages on a spinning cylinder. Cards near the sides appear nearly edge-on; front cards face you directly. The ring auto-rotates slowly and responds to drag, swipe, and trackpad scroll. Hover any poster to lift it out of the ring and see a larger preview with title and artist in the top-left corner.",
+    tags: ["3D", "Interactive", "Perspective", "Network"],
+    techniques: [
+      "Per-card Y-axis rotation (Matrix4.rotateY)",
+      "Perspective projection (painter's algorithm depth sort)",
+      "X-axis ring tilt — viewed from above",
+      "TweenAnimationBuilder hover lift",
+      "Momentum + friction on drag/scroll",
+      "Image.network + RepaintBoundary caching",
+      "AnimatedSwitcher preview overlay",
+    ],
+    video: asset("/previews/3d_cosmo_album_gallery.mp4"),
+    previewBg: "#ffffff",
+    dark: false,
+  },
+  {
     id: "morphing_sphere",
     title: "3D Morphing Dot Sphere",
     blurb:

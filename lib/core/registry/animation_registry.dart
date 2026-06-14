@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../animations/cosmo_gallery/cosmo_gallery_animation.dart';
 import '../../animations/morphing_sphere/morphing_sphere_animation.dart';
 import '../../animations/ripple_dot_grid/ripple_dot_grid_animation.dart';
 import '../../animations/morphing_sphere/widgets/morph_preview.dart';
@@ -14,6 +15,22 @@ import '../models/animation_meta.dart';
 /// 2. Build the entry widget following the existing pattern.
 /// 3. Add an [AnimationMeta] entry here — the gallery picks it up automatically.
 final List<AnimationMeta> animationRegistry = [
+  AnimationMeta(
+    id: 'cosmo_gallery',
+    title: '3D Cosmo Album Gallery',
+    description:
+        'A ring of Spotify album covers arranged in a perspective-projected 3-D '
+        'circle. Auto-rotates slowly; drag, swipe, or scroll to spin it fast. '
+        'Hover any poster to lift it and preview the artwork in the top-left corner.',
+    technicalSummary:
+        'Ticker · perspective projection · painter\'s algorithm depth sort · '
+        'X-axis ring tilt · TweenAnimationBuilder hover lift · '
+        'PointerScrollEvent trackpad · Image.network with RepaintBoundary.',
+    tags: const ['3D', 'Interactive', 'Perspective', 'Network'],
+    backgroundColor: Colors.white,
+    previewBackground: Colors.white,
+    builder: (_) => const CosmoGalleryAnimation(),
+  ),
   AnimationMeta(
     id: 'morphing_sphere',
     title: '3D Morphing Dot Sphere',
