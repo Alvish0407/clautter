@@ -1,4 +1,0 @@
-:HL["/preview/claude-dreamy-wright-uxsten/_next/static/chunks/2ez15fy4bw6-r.css","style"]
-:HL["/preview/claude-dreamy-wright-uxsten/_next/static/media/caa3a2e1cccd8315-s.p.0wgildi0cnwt9.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-:HL["/preview/claude-dreamy-wright-uxsten/_next/static/media/e41e2dd30e301801-s.p.15j5bg11rx80g.woff2","font",{"crossOrigin":"","type":"font/woff2"}]
-0:{"tree":{"name":"","param":null,"prefetchHints":16,"slots":{"children":{"name":"work","param":null,"prefetchHints":0,"slots":{"children":{"name":"id","param":{"type":"d","key":"ripple_dot_grid","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"F7UjG-FCh0rPvDAtpGbAM"}
