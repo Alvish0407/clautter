@@ -1,4 +1,5 @@
 import 'dart:math';
+import 'dart:ui' as ui;
 
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -143,6 +144,21 @@ const _albums = <_Album>[
   ),
 ];
 
+// ── Card layout data ──────────────────────────────────────────────────────────
+
+class _CardInfo {
+  final int index;
+  final double screenX, screenY, z, scale, theta;
+  const _CardInfo({
+    required this.index,
+    required this.screenX,
+    required this.screenY,
+    required this.z,
+    required this.scale,
+    required this.theta,
+  });
+}
+
 // ── Main widget ───────────────────────────────────────────────────────────────
 
 class CosmoGalleryAnimation extends StatefulWidget {
@@ -158,22 +174,92 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
   double _rotation = 0;
   double _velocity = 0;
   int? _hoveredIndex;
+  final List<ui.Image?> _images = List.filled(_albums.length, null);
+  final Map<int, double> _liftProgress = {};
 
-  static const _autoRad = 0.003; // auto-rotate speed (rad/frame)
-  static const _friction = 0.88; // momentum decay per frame
-  static const _dragK = 0.006; // drag px → rad
+  static const _autoRad = 0.003;
+  static const _friction = 0.88;
+  static const _dragK = 0.006;
 
   @override
   void initState() {
     super.initState();
+    _loadImages();
     _ticker = createTicker((_) {
-      setState(() {
-        _velocity *= _friction;
-        final useAuto = _velocity.abs() < 0.0003;
-        _rotation += useAuto ? _autoRad : _velocity;
-        if (useAuto) _velocity = 0;
-      });
+      _velocity *= _friction;
+      final useAuto = _velocity.abs() < 0.0003;
+      _rotation += useAuto ? _autoRad : _velocity;
+      if (useAuto) _velocity = 0;
+
+      for (var i = 0; i < _albums.length; i++) {
+        final target = _hoveredIndex == i ? 1.0 : 0.0;
+        final cur = _liftProgress[i] ?? 0.0;
+        if ((cur - target).abs() > 0.001) {
+          _liftProgress[i] = cur + (target - cur) * 0.18;
+        }
+      }
+      if (mounted) setState(() {});
     })..start();
+  }
+
+  void _loadImages() {
+    for (var i = 0; i < _albums.length; i++) {
+      final idx = i;
+      final stream = NetworkImage(_albums[idx].imageUrl).resolve(ImageConfiguration.empty);
+      stream.addListener(
+        ImageStreamListener(
+          (info, _) {
+            if (mounted) setState(() => _images[idx] = info.image);
+          },
+          onError: (e, _) {},
+        ),
+      );
+    }
+  }
+
+  List<_CardInfo> _computeCards(Size size) {
+    final w = size.width;
+    final h = size.height;
+    final n = _albums.length;
+    final R = w * 0.32;
+    final focal = w * 0.72;
+    const tilt = 0.35;
+    final cx = w / 2;
+    final cy = h * 0.45;
+
+    return List.generate(n, (i) {
+      final theta = i * 2 * pi / n + _rotation;
+      final cosT = cos(theta);
+      final sinT = sin(theta);
+      final z = (focal - R * cosT * cos(tilt)).clamp(1.0, double.infinity);
+      final sc = focal / z;
+      return _CardInfo(
+        index: i,
+        screenX: cx + R * sinT * sc,
+        screenY: cy + R * cosT * sin(tilt) * sc,
+        z: z,
+        scale: sc,
+        theta: theta,
+      );
+    });
+  }
+
+  // Approximate hit test: use cos(theta) to estimate visible card width.
+  int? _hitTest(List<_CardInfo> sortedBackToFront, Offset pos) {
+    const cW = 130.0;
+    const cH = 165.0;
+    for (final c in sortedBackToFront.reversed) {
+      final lift = (_liftProgress[c.index] ?? 0.0) * 22.0;
+      final visW = cW * c.scale * cos(c.theta).abs().clamp(0.12, 1.0);
+      final ch = cH * c.scale;
+      final left = c.screenX - visW / 2;
+      final top = c.screenY - ch / 2 - lift;
+      if (pos.dx >= left && pos.dx <= left + visW &&
+          pos.dy >= top && pos.dy <= top + ch) {
+        return c.index;
+      }
+    }
+    return null;
   }
 
   @override
@@ -200,16 +286,32 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
           color: Colors.white,
           child: Stack(
             children: [
-              // 3-D ring
               LayoutBuilder(
-                builder: (_, c) => _Ring(
-                  size: Size(c.maxWidth, c.maxHeight),
-                  rotation: _rotation,
-                  hoveredIndex: _hoveredIndex,
-                  onHover: (i) => setState(() => _hoveredIndex = i),
-                ),
+                builder: (_, constraints) {
+                  final size = Size(constraints.maxWidth, constraints.maxHeight);
+                  final cards = _computeCards(size)
+                    ..sort((a, b) => b.z.compareTo(a.z));
+                  return MouseRegion(
+                    cursor: SystemMouseCursors.basic,
+                    onHover: (e) {
+                      final hit = _hitTest(cards, e.localPosition);
+                      if (hit != _hoveredIndex) setState(() => _hoveredIndex = hit);
+                    },
+                    onExit: (_) {
+                      if (_hoveredIndex != null) setState(() => _hoveredIndex = null);
+                    },
+                    child: CustomPaint(
+                      size: size,
+                      painter: _RingPainter(
+                        cards: cards,
+                        images: _images,
+                        liftProgress: Map.of(_liftProgress),
+                        hoveredIndex: _hoveredIndex,
+                      ),
+                    ),
+                  );
+                },
               ),
-              // Top-left album preview (fades in/out on hover)
               Positioned(
                 top: 20,
                 left: 20,
@@ -238,185 +340,77 @@ class _CosmoGalleryAnimationState extends State<CosmoGalleryAnimation>
   }
 }
 
-// ── 3-D ring ──────────────────────────────────────────────────────────────────
+// ── 3-D ring painter ─────────────────────────────────────────────────────────
 
-class _CardInfo {
-  final int index;
-  final double screenX, screenY, z, scale;
-  // Angular position in the ring — used to rotate each card face outward.
-  final double theta;
-
-  const _CardInfo({
-    required this.index,
-    required this.screenX,
-    required this.screenY,
-    required this.z,
-    required this.scale,
-    required this.theta,
-  });
-}
-
-class _Ring extends StatelessWidget {
-  final Size size;
-  final double rotation;
+class _RingPainter extends CustomPainter {
+  final List<_CardInfo> cards;
+  final List<ui.Image?> images;
+  final Map<int, double> liftProgress;
   final int? hoveredIndex;
-  final void Function(int?) onHover;
 
-  const _Ring({
-    required this.size,
-    required this.rotation,
+  static const _cW = 130.0;
+  static const _cH = 165.0;
+
+  const _RingPainter({
+    required this.cards,
+    required this.images,
+    required this.liftProgress,
     required this.hoveredIndex,
-    required this.onHover,
   });
 
   @override
-  Widget build(BuildContext context) {
-    final w = size.width;
-    final h = size.height;
-    final n = _albums.length;
+  void paint(Canvas canvas, Size size) {
+    final imgPaint = Paint()..filterQuality = FilterQuality.medium;
+    final placeholderPaint = Paint()..color = const Color(0xFFEEEEEE);
+    final shadowPaint = Paint();
 
-    // 3-D projection constants
-    final R = w * 0.32; // ring radius
-    final focal = w * 0.72; // perspective focal length
-    const tilt = 0.35; // X-axis tilt (rad) — ring viewed from above
-    final cx = w / 2;
-    final cy = h * 0.45;
+    for (final c in cards) {
+      final img = images[c.index];
+      final lift = (liftProgress[c.index] ?? 0.0) * 22.0;
+      final isHov = hoveredIndex == c.index;
+      final cw = _cW * c.scale;
+      final ch = _cH * c.scale;
+      final cardRect = Rect.fromCenter(center: Offset.zero, width: cw, height: ch);
 
-    // Base card dimensions (natural size, scaled per depth)
-    const cW = 130.0;
-    const cH = 165.0;
+      canvas.save();
+      canvas.translate(c.screenX, c.screenY - lift);
 
-    // Project each album card into screen space
-    final cards = <_CardInfo>[];
-    for (var i = 0; i < n; i++) {
-      final theta = i * 2 * pi / n + rotation;
-      final cosT = cos(theta);
-      final sinT = sin(theta);
+      final m = Matrix4.identity()
+        ..setEntry(3, 2, 0.0015)
+        ..rotateY(c.theta);
+      canvas.transform(m.storage);
 
-      final x3d = R * sinT;
-      // Depth: smaller z = closer = larger scale.
-      // At theta=0 (front) z is smallest; at theta=π (back) z is largest.
-      final z = (focal - R * cosT * cos(tilt)).clamp(1.0, double.infinity);
-      // Vertical screen offset from ring tilt (back cards rise, front drop).
-      final y3d = R * cosT * sin(tilt);
-
-      final sc = focal / z;
-      cards.add(
-        _CardInfo(
-          index: i,
-          screenX: cx + x3d * sc,
-          screenY: cy + y3d * sc,
-          z: z,
-          scale: sc,
-          theta: theta,
+      // Shadow drawn before clip so it spills outside the rounded rect.
+      shadowPaint
+        ..color = Colors.black.withValues(alpha: isHov ? 0.40 : 0.18)
+        ..maskFilter = MaskFilter.blur(BlurStyle.normal, (isHov ? 26.0 : 10.0) * c.scale);
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromCenter(center: Offset(0, (isHov ? 10.0 : 4.0) * c.scale), width: cw, height: ch),
+          const Radius.circular(6),
         ),
+        shadowPaint,
       );
-    }
 
-    // Painter's algorithm — draw back cards first so front cards appear on top.
-    cards.sort((a, b) => b.z.compareTo(a.z));
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: cards.map((c) {
-        final album = _albums[c.index];
-        final isHov = hoveredIndex == c.index;
-        final cw = cW * c.scale;
-        final ch = cH * c.scale;
-
-        return Positioned(
-          key: ValueKey(c.index),
-          left: c.screenX - cw / 2,
-          top: c.screenY - ch / 2,
-          width: cw,
-          height: ch,
-          child: TweenAnimationBuilder<double>(
-            duration: const Duration(milliseconds: 220),
-            curve: Curves.easeOut,
-            // Hover: lift the card straight up in screen space.
-            tween: Tween(end: isHov ? -22.0 : 0.0),
-            builder: (_, lift, child) => Transform.translate(
-              offset: Offset(0, lift),
-              child: child,
-            ),
-            // Each card is rotated around its Y axis by theta so that it
-            // faces outward from the ring centre — side cards appear edge-on,
-            // front/back cards appear full-width (the "cylinder of pages" look).
-            child: Transform(
-              alignment: Alignment.center,
-              transform: Matrix4.identity()
-                ..setEntry(3, 2, 0.0015) // perspective for the card rotation
-                ..rotateY(c.theta),
-              child: MouseRegion(
-                cursor: SystemMouseCursors.click,
-                onEnter: (_) => onHover(c.index),
-                onExit: (_) => onHover(null),
-                child: _AlbumCard(
-                  album: album,
-                  scale: c.scale,
-                  hovered: isHov,
-                ),
-              ),
-            ),
-          ),
+      // Clip to rounded corners then draw image / placeholder.
+      canvas.clipRRect(RRect.fromRectAndRadius(cardRect, const Radius.circular(6)));
+      if (img != null) {
+        canvas.drawImageRect(
+          img,
+          Rect.fromLTWH(0, 0, img.width.toDouble(), img.height.toDouble()),
+          cardRect,
+          imgPaint,
         );
-      }).toList(),
-    );
+      } else {
+        canvas.drawRect(cardRect, placeholderPaint);
+      }
+
+      canvas.restore();
+    }
   }
-}
-
-// ── Album card ────────────────────────────────────────────────────────────────
-
-class _AlbumCard extends StatelessWidget {
-  final _Album album;
-  final double scale;
-  final bool hovered;
-
-  const _AlbumCard({
-    required this.album,
-    required this.scale,
-    required this.hovered,
-  });
 
   @override
-  Widget build(BuildContext context) {
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 220),
-      curve: Curves.easeOut,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(6),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: hovered ? 0.40 : 0.18),
-            blurRadius: (hovered ? 26 : 10) * scale,
-            spreadRadius: hovered ? 2 * scale : 0,
-            offset: Offset(0, (hovered ? 10 : 4) * scale),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(6),
-        child: RepaintBoundary(
-          child: Image.network(
-            album.imageUrl,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => ColoredBox(
-              color: const Color(0xFFEEEEEE),
-              child: Center(
-                child: Icon(
-                  Icons.music_note_outlined,
-                  color: const Color(0xFFAAAAAA),
-                  size: 22 * scale,
-                ),
-              ),
-            ),
-            loadingBuilder: (_, child, progress) =>
-                progress == null ? child : const ColoredBox(color: Color(0xFFEEEEEE)),
-          ),
-        ),
-      ),
-    );
-  }
+  bool shouldRepaint(_RingPainter old) => true;
 }
 
 // ── Top-left album preview ────────────────────────────────────────────────────
