@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../animations/book_page_flip/book_page_flip_animation.dart';
 import '../../animations/cosmo_gallery/cosmo_gallery_animation.dart';
 import '../../animations/morphing_sphere/morphing_sphere_animation.dart';
 import '../../animations/ripple_dot_grid/ripple_dot_grid_animation.dart';
@@ -11,10 +12,27 @@ import '../models/animation_meta.dart';
 /// The single source of truth for every animation in Clautter.
 ///
 /// To add a new animation:
-/// 1. Create its folder under lib/animations/<name>/
+/// 1. Create its folder under lib/animations/[name]/
 /// 2. Build the entry widget following the existing pattern.
 /// 3. Add an [AnimationMeta] entry here — the gallery picks it up automatically.
 final List<AnimationMeta> animationRegistry = [
+  AnimationMeta(
+    id: 'book_page_flip',
+    title: 'Book Page Flip',
+    description:
+        'An open book sitting on a wooden desk. Tap the right page (or the → '
+        'button) to flip forward; tap the left page to flip back. Each page '
+        'performs a realistic 3D fold around the spine — foreshortening as it '
+        'rotates and revealing its reverse face at the midpoint.',
+    technicalSummary:
+        'AnimationController · CurvedAnimation · CustomPaint · '
+        'foreshortened trapezoid · cosine projection · per-face lighting '
+        'gradient · GestureDetector tap zone split.',
+    tags: const ['3D', 'CustomPaint', 'Interactive', 'Animation'],
+    backgroundColor: const Color(0xFF3E2723),
+    previewBackground: const Color(0xFF3E2723),
+    builder: (_) => const BookPageFlipAnimation(),
+  ),
   AnimationMeta(
     id: 'cosmo_gallery',
     title: '3D Cosmo Album Gallery',

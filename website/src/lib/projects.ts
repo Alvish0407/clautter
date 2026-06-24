@@ -21,6 +21,26 @@ export type Project = {
 
 export const projects: Project[] = [
   {
+    id: "book_page_flip",
+    title: "Book Page Flip",
+    blurb:
+      "An open book sitting on a desk. Tap either side to flip pages forward or back with a smooth 3D fold around the spine.",
+    description:
+      "An open book resting on a wooden desk. Tap the right half to turn the page forward, or the left half to go back. Each flip is a 3D perspective fold: the page foreshortens as it rotates around the spine, flips to show its back face at the midpoint, and lands on the opposite side. Soft lighting gradients deepen toward the spine and brighten on the outer face, giving the paper a tactile, physical feel.",
+    tags: ["3D", "CustomPaint", "Interactive", "Animation"],
+    techniques: [
+      "AnimationController + CurvedAnimation (easeInOut)",
+      "Foreshortened trapezoid via cosine projection",
+      "Dual-face rendering (front / back of page)",
+      "Per-face lighting gradient deepening at spine",
+      "GestureDetector tap-zone split (left / right half)",
+      "CustomPaint with full repaint optimisation",
+    ],
+    video: asset("/previews/book_page_flip.mp4"),
+    previewBg: "#3E2723",
+    dark: true,
+  },
+  {
     id: "cosmo_gallery",
     title: "3D Cosmo Album Gallery",
     blurb:
