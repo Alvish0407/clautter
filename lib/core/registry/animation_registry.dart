@@ -20,17 +20,17 @@ final List<AnimationMeta> animationRegistry = [
     id: 'book_page_flip',
     title: 'Book Page Flip',
     description:
-        'An open book sitting on a wooden desk. Tap the right page (or the → '
-        'button) to flip forward; tap the left page to flip back. Each page '
-        'performs a realistic 3D fold around the spine — foreshortening as it '
-        'rotates and revealing its reverse face at the midpoint.',
+        'An open book with real text content. Drag a page from the right '
+        'to fold it over with a geometric perpendicular-bisector fold. '
+        'The folded region reveals the next page underneath while the '
+        'turned portion reflects across the fold line.',
     technicalSummary:
-        'AnimationController · CurvedAnimation · CustomPaint · '
-        'foreshortened trapezoid · cosine projection · per-face lighting '
-        'gradient · GestureDetector tap zone split.',
-    tags: const ['3D', 'CustomPaint', 'Interactive', 'Animation'],
-    backgroundColor: const Color(0xFF3E2723),
-    previewBackground: const Color(0xFF3E2723),
+        'AnimationController · CustomPaint · perpendicular-bisector fold '
+        'geometry · polygon clipping · matrix reflection transform · '
+        'GestureDetector pan · fold-line shadow & highlight.',
+    tags: const ['Geometry', 'CustomPaint', 'Interactive', 'Animation'],
+    backgroundColor: const Color(0xFFBBBBBB),
+    previewBackground: const Color(0xFFBBBBBB),
     builder: (_) => const BookPageFlipAnimation(),
   ),
   AnimationMeta(

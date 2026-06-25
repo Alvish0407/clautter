@@ -5,277 +5,434 @@ import 'package:flutter/material.dart';
 
 import '../models/page_data.dart';
 
-/// Paints a two-page open book spread with a page-flip in progress.
-///
-/// [flipProgress] ∈ [0, 1]:
-///   0.0 = page fully resting on the right (pre-flip)
-///   0.5 = page is at the spine (vertical, halfway)
-///   1.0 = page fully landed on the left (post-flip)
-///
-/// The flip is rendered as a trapezoid that foreshortens horizontally as the
-/// virtual page rotates, plus a soft gradient shadow that deepens at the spine.
 class BookPainter extends CustomPainter {
-  final PageData leftPage;
-  final PageData rightPage;
-  final PageData flippingFront; // face visible 0→0.5
-  final PageData flippingBack;  // face visible 0.5→1
-  final double flipProgress;    // 0..1
-  final bool flippingForward;   // true = next page, false = previous
+  final List<PageData> pages;
+  final int currentSpread;
+  final Offset? dragPoint;
+  final double autoFlipProgress;
+  final bool flippingForward;
 
-  const BookPainter({
-    required this.leftPage,
-    required this.rightPage,
-    required this.flippingFront,
-    required this.flippingBack,
-    required this.flipProgress,
-    required this.flippingForward,
+  BookPainter({
+    required this.pages,
+    required this.currentSpread,
+    this.dragPoint,
+    this.autoFlipProgress = -1,
+    this.flippingForward = true,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final cx = size.width / 2;
     final cy = size.height / 2;
-
     final bookW = size.width * 0.82;
-    final bookH = bookW * 0.65;
+    final bookH = bookW * 0.68;
     final pageW = bookW / 2;
     final bookLeft = cx - bookW / 2;
     final bookTop = cy - bookH / 2;
+    final bookRight = bookLeft + bookW;
+    final bookBottom = bookTop + bookH;
 
     final leftRect = Rect.fromLTWH(bookLeft, bookTop, pageW, bookH);
     final rightRect = Rect.fromLTWH(cx, bookTop, pageW, bookH);
 
-    _drawBookShadow(canvas, bookLeft, bookTop, bookW, bookH);
-    _drawPage(canvas, leftRect, leftPage, isLeft: true);
-    _drawPage(canvas, rightRect, rightPage, isLeft: false);
-    _drawSpine(canvas, cx, bookTop, bookH);
-    _drawFlippingPage(canvas, leftRect, rightRect, bookTop, bookH, pageW, cx);
-    _drawBookEdges(canvas, bookLeft, bookTop, bookW, bookH);
-  }
+    final leftIdx = currentSpread * 2;
+    final rightIdx = leftIdx + 1;
+    final leftPage = leftIdx < pages.length ? pages[leftIdx] : null;
+    final rightPage = rightIdx < pages.length ? pages[rightIdx] : null;
 
-  void _drawBookShadow(Canvas canvas, double l, double t, double w, double h) {
-    final rr = RRect.fromRectAndRadius(
-      Rect.fromLTWH(l + 6, t + 8, w, h),
-      const Radius.circular(4),
-    );
+    // Book shadow.
     canvas.drawRRect(
-      rr,
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(bookLeft + 4, bookTop + 6, bookW, bookH),
+        const Radius.circular(3),
+      ),
       Paint()
-        ..color = Colors.black.withValues(alpha: 0.25)
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 12),
+        ..color = Colors.black.withValues(alpha: 0.3)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 14),
+    );
+
+    // Book cover (dark border).
+    final coverRect = Rect.fromLTWH(bookLeft - 6, bookTop - 6, bookW + 12, bookH + 12);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(coverRect, const Radius.circular(4)),
+      Paint()..color = const Color(0xFF2C2C2C),
+    );
+
+    // Page edge stack (visible thickness of pages).
+    for (int i = 3; i >= 1; i--) {
+      final offset = i * 1.5;
+      canvas.drawRect(
+        Rect.fromLTWH(bookLeft + offset, bookTop + offset, bookW - offset * 2, bookH - offset * 2),
+        Paint()..color = Color.fromRGBO(240 - i * 8, 238 - i * 8, 232 - i * 8, 1),
+      );
+    }
+
+    // Determine if we're flipping.
+    Offset? effectiveDrag;
+    if (autoFlipProgress >= 0) {
+      final cornerBR = Offset(bookRight, bookBottom);
+      final target = Offset(bookLeft - pageW * 0.15, bookBottom - bookH * 0.1);
+      if (flippingForward) {
+        effectiveDrag = Offset.lerp(cornerBR, target, autoFlipProgress);
+      } else {
+        effectiveDrag = Offset.lerp(target, cornerBR, 1 - autoFlipProgress);
+      }
+    } else if (dragPoint != null) {
+      effectiveDrag = dragPoint;
+    }
+
+    final isFlipping = effectiveDrag != null;
+    final nextLeftIdx = leftIdx + 2;
+    final nextRightIdx = leftIdx + 3;
+
+    if (isFlipping && flippingForward) {
+      // When flipping forward, draw the next spread's pages underneath.
+      final underLeft = nextLeftIdx < pages.length ? pages[nextLeftIdx] : null;
+      final underRight = nextRightIdx < pages.length ? pages[nextRightIdx] : null;
+      if (underLeft != null) _drawPage(canvas, leftRect, underLeft, isLeft: true);
+      if (underRight != null) _drawPage(canvas, rightRect, underRight, isLeft: false);
+    } else {
+      // Draw current spread.
+      if (leftPage != null) _drawPage(canvas, leftRect, leftPage, isLeft: true);
+      if (rightPage != null) _drawPage(canvas, rightRect, rightPage, isLeft: false);
+    }
+
+    // Spine.
+    _drawSpine(canvas, cx, bookTop, bookH);
+
+    // Draw fold if dragging or animating.
+    if (effectiveDrag != null && rightPage != null) {
+      final nextPage = nextLeftIdx < pages.length ? pages[nextLeftIdx] : null;
+      _drawFold(
+        canvas,
+        effectiveDrag,
+        rightRect,
+        rightPage,
+        nextPage,
+        bookLeft,
+        bookTop,
+        bookRight,
+        bookBottom,
+        pageW,
+        bookH,
+        cx,
+      );
+    }
+
+    // Book border.
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(coverRect, const Radius.circular(4)),
+      Paint()
+        ..color = const Color(0xFF1A1A1A)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2,
     );
   }
 
   void _drawPage(Canvas canvas, Rect rect, PageData page, {required bool isLeft}) {
-    final radius = isLeft
-        ? const BorderRadius.only(
-            topLeft: Radius.circular(4),
-            bottomLeft: Radius.circular(4),
-          )
-        : const BorderRadius.only(
-            topRight: Radius.circular(4),
-            bottomRight: Radius.circular(4),
-          );
+    canvas.save();
+    canvas.clipRect(rect);
+    canvas.drawRect(rect, Paint()..color = const Color(0xFFFAF8F2));
 
-    final rrect = radius.toRRect(rect);
-
-    // Page background.
-    canvas.drawRRect(rrect, Paint()..color = page.color);
-
-    // Subtle inner gradient (paper texture feel).
-    final grad = LinearGradient(
+    // Inner gutter shadow.
+    final gutterGrad = LinearGradient(
       begin: isLeft ? Alignment.centerRight : Alignment.centerLeft,
       end: isLeft ? Alignment.centerLeft : Alignment.centerRight,
       colors: [Colors.black.withValues(alpha: 0.06), Colors.transparent],
-      stops: const [0.0, 0.35],
+      stops: const [0.0, 0.12],
     );
-    canvas.drawRRect(rrect, Paint()..shader = grad.createShader(rect));
+    canvas.drawRect(rect, Paint()..shader = gutterGrad.createShader(rect));
 
-    // Page lines.
-    _drawPageLines(canvas, rect, page);
-
-    // Page-number footer.
-    _drawPageNumber(canvas, rect, page.pageNumber);
+    _drawPageContent(canvas, rect, page, isLeft: isLeft);
+    canvas.restore();
   }
 
-  void _drawPageLines(Canvas canvas, Rect rect, PageData page) {
-    final linePaint = Paint()
-      ..color = Colors.black.withValues(alpha: 0.08)
-      ..strokeWidth = 0.8;
+  void _drawPageContent(Canvas canvas, Rect rect, PageData page, {required bool isLeft}) {
+    final margin = rect.width * 0.10;
+    final contentWidth = rect.width - margin * 2;
 
-    final textPad = rect.width * 0.15;
-    final lineSpacing = rect.height * 0.08;
-    final startY = rect.top + rect.height * 0.22;
-    final endX = rect.right - textPad;
-    final startX = rect.left + textPad;
-
-    for (int i = 0; i < 6; i++) {
-      final y = startY + i * lineSpacing;
-      if (y < rect.bottom - rect.height * 0.15) {
-        canvas.drawLine(Offset(startX, y), Offset(endX, y), linePaint);
-      }
+    // Header.
+    final headerText = isLeft ? page.headerLeft : page.headerRight;
+    if (headerText != null && headerText.isNotEmpty) {
+      final hb = ui.ParagraphBuilder(ui.ParagraphStyle(
+        textAlign: isLeft ? TextAlign.left : TextAlign.right,
+        fontSize: rect.width * 0.032,
+        fontWeight: FontWeight.w400,
+        height: 1.0,
+      ))
+        ..pushStyle(ui.TextStyle(
+          color: const Color(0xFF555555),
+          letterSpacing: 2.5,
+        ))
+        ..addText(headerText.toUpperCase());
+      final hp = hb.build()..layout(ui.ParagraphConstraints(width: contentWidth));
+      canvas.drawParagraph(hp, Offset(rect.left + margin, rect.top + margin * 0.8));
     }
 
-    // Draw label text via paragraph.
-    final paragraphBuilder = ui.ParagraphBuilder(ui.ParagraphStyle(
-      textAlign: TextAlign.center,
-      fontSize: rect.width * 0.11,
-      fontWeight: FontWeight.w300,
+    // Body text.
+    if (page.body.isNotEmpty) {
+      final bodyTop = rect.top + margin * 2.2;
+      final bodyHeight = rect.height - margin * 3.8;
+
+      final bb = ui.ParagraphBuilder(ui.ParagraphStyle(
+        textAlign: TextAlign.justify,
+        fontSize: rect.width * 0.044,
+        fontWeight: FontWeight.w400,
+        height: 1.65,
+        maxLines: 50,
+      ))
+        ..pushStyle(ui.TextStyle(
+          color: const Color(0xFF2A2A2A),
+          fontFamily: 'serif',
+        ))
+        ..addText(page.body);
+      final bp = bb.build()..layout(ui.ParagraphConstraints(width: contentWidth));
+
+      canvas.save();
+      canvas.clipRect(Rect.fromLTWH(rect.left, bodyTop, rect.width, bodyHeight));
+      canvas.drawParagraph(bp, Offset(rect.left + margin, bodyTop));
+      canvas.restore();
+    }
+
+    // Page number.
+    final pnb = ui.ParagraphBuilder(ui.ParagraphStyle(
+      textAlign: isLeft ? TextAlign.left : TextAlign.right,
+      fontSize: rect.width * 0.042,
     ))
-      ..pushStyle(ui.TextStyle(color: Colors.black54))
-      ..addText(page.label);
-
-    final paragraph = paragraphBuilder.build()
-      ..layout(ui.ParagraphConstraints(width: rect.width * 0.7));
-
+      ..pushStyle(ui.TextStyle(color: const Color(0xFF777777)))
+      ..addText('${page.pageNumber}');
+    final pnp = pnb.build()..layout(ui.ParagraphConstraints(width: contentWidth));
     canvas.drawParagraph(
-      paragraph,
-      Offset(
-        rect.left + (rect.width - rect.width * 0.7) / 2,
-        rect.top + rect.height * 0.28,
-      ),
-    );
-  }
-
-  void _drawPageNumber(Canvas canvas, Rect rect, int number) {
-    final pb = ui.ParagraphBuilder(ui.ParagraphStyle(
-      textAlign: TextAlign.center,
-      fontSize: rect.width * 0.08,
-    ))
-      ..pushStyle(ui.TextStyle(color: Colors.black38))
-      ..addText('$number');
-
-    final para = pb.build()..layout(ui.ParagraphConstraints(width: rect.width));
-    canvas.drawParagraph(
-      para,
-      Offset(rect.left, rect.bottom - rect.height * 0.10),
+      pnp,
+      Offset(rect.left + margin, rect.bottom - margin * 1.1),
     );
   }
 
   void _drawSpine(Canvas canvas, double cx, double bookTop, double bookH) {
-    final spinePaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.centerLeft,
-        end: Alignment.centerRight,
-        colors: [
-          Colors.black.withValues(alpha: 0.18),
-          Colors.black.withValues(alpha: 0.05),
-          Colors.black.withValues(alpha: 0.18),
-        ],
-        stops: const [0.0, 0.5, 1.0],
-      ).createShader(Rect.fromLTWH(cx - 4, bookTop, 8, bookH));
-
-    canvas.drawRect(Rect.fromLTWH(cx - 4, bookTop, 8, bookH), spinePaint);
-  }
-
-  void _drawBookEdges(Canvas canvas, double l, double t, double w, double h) {
-    final rrect = RRect.fromRectAndRadius(
-      Rect.fromLTWH(l, t, w, h),
-      const Radius.circular(4),
-    );
-    canvas.drawRRect(
-      rrect,
+    final spineW = 8.0;
+    final spineRect = Rect.fromLTWH(cx - spineW / 2, bookTop, spineW, bookH);
+    canvas.drawRect(
+      spineRect,
       Paint()
-        ..color = Colors.brown.shade300.withValues(alpha: 0.5)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = 1.5,
+        ..shader = LinearGradient(
+          colors: [
+            Colors.black.withValues(alpha: 0.15),
+            Colors.black.withValues(alpha: 0.03),
+            Colors.black.withValues(alpha: 0.15),
+          ],
+          stops: const [0.0, 0.5, 1.0],
+        ).createShader(spineRect),
     );
   }
 
-  void _drawFlippingPage(
+  void _drawFold(
     Canvas canvas,
-    Rect leftRect,
-    Rect rightRect,
+    Offset drag,
+    Rect pageRect,
+    PageData frontPage,
+    PageData? backPage,
+    double bookLeft,
     double bookTop,
-    double bookH,
+    double bookRight,
+    double bookBottom,
     double pageW,
+    double bookH,
     double cx,
   ) {
-    // angle ∈ [0, π] as flipProgress goes 0 → 1
-    final angle = flipProgress * pi;
+    // Corner that's being dragged (bottom-right of the right page).
+    final corner = Offset(bookRight, bookBottom);
 
-    // The page flips from the right side to the left side.
-    // cos(angle): 1 at 0°, 0 at 90°, -1 at 180°
-    final cosA = cos(angle);
-    final absCos = cosA.abs();
+    // Clamp drag so the fold doesn't go past the spine too far.
+    final clampedDrag = Offset(
+      drag.dx.clamp(bookLeft, bookRight),
+      drag.dy.clamp(bookTop - bookH * 0.3, bookBottom + bookH * 0.3),
+    );
 
-    // Foreshortened width of the flipping page.
-    final fWidth = pageW * absCos;
+    // Perpendicular bisector of (corner → clampedDrag).
+    final mid = Offset(
+      (corner.dx + clampedDrag.dx) / 2,
+      (corner.dy + clampedDrag.dy) / 2,
+    );
+    final dx = clampedDrag.dx - corner.dx;
+    final dy = clampedDrag.dy - corner.dy;
+    final len = sqrt(dx * dx + dy * dy);
+    if (len < 1) return;
 
-    // Which face are we showing?
-    final showBack = angle > pi / 2;
-    final pageData = showBack ? flippingBack : flippingFront;
+    // Normal of fold line (perpendicular to corner→drag).
+    final nx = -dy / len;
+    final ny = dx / len;
 
-    // The spine edge is always at cx (spine).
-    // First half (0→π/2): right face — page sweeps left from cx+pageW → cx
-    // Second half (π/2→π): back face — page sweeps left from cx → cx-pageW
-    double left, right;
-    if (!showBack) {
-      // cosA: 1 → 0, so page right edge goes from cx+pageW to cx
-      right = cx + pageW * cosA;
-      left = cx;
-    } else {
-      // cosA: 0 → -1, so page left edge goes from cx to cx-pageW
-      left = cx + pageW * cosA; // cosA is negative here
-      right = cx;
+    // Find where the fold line intersects the page edges to build the fold polygon.
+    final foldPoints = <Offset>[];
+    final pageCorners = [
+      Offset(cx, bookTop),        // top-left of right page
+      Offset(bookRight, bookTop), // top-right
+      corner,                      // bottom-right
+      Offset(cx, bookBottom),     // bottom-left
+    ];
+
+    // Determine which page corners are on the "folded" side (same side as drag point).
+    final cornerSide = <bool>[];
+    for (final c in pageCorners) {
+      final v = (c.dx - mid.dx) * nx + (c.dy - mid.dy) * ny;
+      cornerSide.add(v > 0);
     }
 
-    if (fWidth < 0.5) return; // invisible at 90°
+    // The folded side is the side the drag point is on.
+    final dragSide = (clampedDrag.dx - mid.dx) * nx + (clampedDrag.dy - mid.dy) * ny > 0;
 
-    final flipRect = Rect.fromLTRB(left, bookTop, right, bookTop + bookH);
+    // Build polygon of the folded region.
+    for (int i = 0; i < 4; i++) {
+      final j = (i + 1) % 4;
+      final ci = pageCorners[i];
+      final cj = pageCorners[j];
+      final si = cornerSide[i];
+      final sj = cornerSide[j];
 
+      if (si == dragSide) {
+        foldPoints.add(ci);
+      }
+
+      if (si != sj) {
+        // Edge crosses the fold line — find intersection.
+        final edx = cj.dx - ci.dx;
+        final edy = cj.dy - ci.dy;
+        final denom = edx * nx + edy * ny;
+        if (denom.abs() > 1e-6) {
+          final t = ((mid.dx - ci.dx) * nx + (mid.dy - ci.dy) * ny) / denom;
+          if (t >= -0.01 && t <= 1.01) {
+            foldPoints.add(Offset(ci.dx + edx * t.clamp(0, 1), ci.dy + edy * t.clamp(0, 1)));
+          }
+        }
+      }
+    }
+
+    if (foldPoints.length < 3) return;
+
+    // The unfolded region = right page minus the folded polygon.
+    // Draw the right page clipped to the unfolded area.
     canvas.save();
-    // Clip so the flipping page doesn't overflow the book bounds.
-    canvas.clipRect(Rect.fromLTWH(
-      cx - pageW,
-      bookTop,
-      pageW * 2,
-      bookH,
-    ));
-
-    // Page background.
-    canvas.drawRect(flipRect, Paint()..color = pageData.color);
-
-    // Lines and text — scale horizontally so they fit the foreshortened rect.
-    canvas.save();
-    canvas.translate(flipRect.left + flipRect.width / 2, flipRect.top + flipRect.height / 2);
-    canvas.scale(absCos, 1.0);
-    canvas.translate(-(pageW / 2), -(bookH / 2));
-
-    final fullRect = Rect.fromLTWH(0, 0, pageW, bookH);
-    _drawPageLines(canvas, fullRect, pageData);
-    _drawPageNumber(canvas, fullRect, pageData.pageNumber);
+    canvas.clipRect(pageRect);
+    // Subtract the folded region by drawing page, then re-drawing with fold clip.
+    _drawPage(canvas, pageRect, frontPage, isLeft: false);
     canvas.restore();
 
-    // Lighting: shadow deepens at spine side.
-    final shadowGrad = LinearGradient(
-      begin: showBack ? Alignment.centerLeft : Alignment.centerRight,
-      end: showBack ? Alignment.centerRight : Alignment.centerLeft,
-      colors: [
-        Colors.black.withValues(alpha: 0.30 * (1 - absCos)),
-        Colors.transparent,
-      ],
+    // Now clip out the folded region and draw the underlying page there.
+    final foldPath = Path()..addPolygon(foldPoints, true);
+
+    if (backPage != null) {
+      canvas.save();
+      canvas.clipPath(foldPath);
+      canvas.clipRect(pageRect);
+      // Draw the next page underneath.
+      _drawPage(canvas, pageRect, backPage, isLeft: false);
+      canvas.restore();
+    }
+
+    // Reflect the fold polygon across the fold line to get the "turned" page.
+    final reflectedPoints = foldPoints.map((p) {
+      final vx = p.dx - mid.dx;
+      final vy = p.dy - mid.dy;
+      final dot = vx * nx + vy * ny;
+      return Offset(p.dx - 2 * dot * nx, p.dy - 2 * dot * ny);
+    }).toList();
+
+    final reflectedPath = Path()..addPolygon(reflectedPoints, true);
+
+    // Draw the folded-over page (reflected).
+    canvas.save();
+    canvas.clipPath(reflectedPath);
+    canvas.clipRect(Rect.fromLTWH(bookLeft - 20, bookTop - 20, bookRight - bookLeft + 40, bookH + 40));
+
+    // Apply the reflection transform for the page content.
+    // Reflect across the fold line: translate to mid, reflect across normal, translate back.
+    // Reflection across the fold line passing through [mid] with normal (nx, ny).
+    // T(mid) · R · T(-mid)  where R = I - 2·n·nᵀ.
+    final r00 = 1 - 2 * nx * nx;
+    final r01 = -2 * nx * ny;
+    final r10 = -2 * nx * ny;
+    final r11 = 1 - 2 * ny * ny;
+    final tx = mid.dx - r00 * mid.dx - r01 * mid.dy;
+    final ty = mid.dy - r10 * mid.dx - r11 * mid.dy;
+    final reflectMatrix = Matrix4(
+      r00, r10, 0, 0,
+      r01, r11, 0, 0,
+      0, 0, 1, 0,
+      tx, ty, 0, 1,
     );
+
+    canvas.transform(reflectMatrix.storage);
+
+    // Draw the page content (it will appear mirrored).
+    canvas.drawRect(pageRect, Paint()..color = const Color(0xFFF5F3ED));
+    _drawPageContent(canvas, pageRect, frontPage, isLeft: false);
+
+    // Slight darkening on the back of the folded page.
     canvas.drawRect(
-      flipRect,
-      Paint()..shader = shadowGrad.createShader(flipRect),
+      pageRect,
+      Paint()..color = Colors.black.withValues(alpha: 0.04),
     );
 
-    // Thin edge line at spine.
-    canvas.drawLine(
-      Offset(cx, bookTop),
-      Offset(cx, bookTop + bookH),
-      Paint()
-        ..color = Colors.black26
-        ..strokeWidth = 1,
-    );
+    canvas.restore();
 
+    // Shadow along the fold line.
+    canvas.save();
+    canvas.clipRect(Rect.fromLTWH(bookLeft - 10, bookTop - 10, bookRight - bookLeft + 20, bookH + 20));
+    final shadowLen = min(pageW * 0.12, len * 0.3);
+
+    for (int i = 0; i < 8; i++) {
+      final t = i / 8.0;
+      final offset = shadowLen * t;
+      final shadowPath = Path();
+      final shifted = reflectedPoints.map((p) {
+        return Offset(p.dx + nx * offset * 0.5, p.dy + ny * offset * 0.5);
+      }).toList();
+      shadowPath.addPolygon(shifted, true);
+
+      canvas.drawPath(
+        shadowPath,
+        Paint()
+          ..color = Colors.black.withValues(alpha: 0.03 * (1 - t))
+          ..maskFilter = MaskFilter.blur(BlurStyle.normal, 3 + t * 8),
+      );
+    }
+    canvas.restore();
+
+    // Highlight along the fold edge.
+    canvas.save();
+    canvas.clipRect(Rect.fromLTWH(bookLeft - 10, bookTop - 10, bookRight - bookLeft + 20, bookH + 20));
+    if (foldPoints.length >= 2) {
+      // Find two intersection points on the fold line.
+      final intersections = <Offset>[];
+      for (int i = 0; i < 4; i++) {
+        final j = (i + 1) % 4;
+        if (cornerSide[i] != cornerSide[j]) {
+          final ci = pageCorners[i];
+          final cj = pageCorners[j];
+          final edx = cj.dx - ci.dx;
+          final edy = cj.dy - ci.dy;
+          final denom = edx * nx + edy * ny;
+          if (denom.abs() > 1e-6) {
+            final t = ((mid.dx - ci.dx) * nx + (mid.dy - ci.dy) * ny) / denom;
+            if (t >= -0.01 && t <= 1.01) {
+              intersections.add(Offset(ci.dx + edx * t.clamp(0, 1), ci.dy + edy * t.clamp(0, 1)));
+            }
+          }
+        }
+      }
+      if (intersections.length >= 2) {
+        canvas.drawLine(
+          intersections[0],
+          intersections[1],
+          Paint()
+            ..color = Colors.white.withValues(alpha: 0.4)
+            ..strokeWidth = 1.5,
+        );
+      }
+    }
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(BookPainter old) =>
-      old.flipProgress != flipProgress ||
-      old.leftPage != leftPage ||
-      old.rightPage != rightPage;
+  bool shouldRepaint(BookPainter old) => true;
 }

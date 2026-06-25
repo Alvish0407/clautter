@@ -3,11 +3,6 @@ import 'package:flutter/material.dart';
 import 'models/page_data.dart';
 import 'painters/book_painter.dart';
 
-/// Book Page Flip animation.
-///
-/// Shows an open book. Tap the right side (or the → button) to flip forward;
-/// tap the left side (or the ← button) to flip back. The flip is a smooth
-/// 3D-perspective fold around the spine using a foreshortened trapezoid.
 class BookPageFlipAnimation extends StatefulWidget {
   const BookPageFlipAnimation({super.key});
 
@@ -17,32 +12,29 @@ class BookPageFlipAnimation extends StatefulWidget {
 
 class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
     with SingleTickerProviderStateMixin {
-  /// Index of the LEFT visible page (even index → 0, 2, 4 …).
-  /// Pages are shown in pairs: spread [_spread] shows pages
-  /// kBookPages[_spread*2] and kBookPages[_spread*2+1].
   int _spread = 0;
+  Offset? _dragPoint;
+  bool _isDragging = false;
 
   late final AnimationController _ctrl;
-  late Animation<double> _flipAnim;
+  bool _animatingForward = true;
+  bool _snapBack = false;
 
-  bool _flippingForward = true;
-  bool _isFlipping = false;
+  int get _maxSpread => (kBookPages.length ~/ 2) - 1;
 
-  int get _maxSpread => ((kBookPages.length - 1) ~/ 2);
-
-  PageData get _leftPage => kBookPages[_spread * 2];
-  PageData get _rightPage =>
-      (_spread * 2 + 1 < kBookPages.length) ? kBookPages[_spread * 2 + 1] : kBookPages.last;
+  // Book geometry — computed in build, cached for hit-testing.
+  Rect _bookRect = Rect.zero;
+  Rect _rightPageRect = Rect.zero;
+  Rect _leftPageRect = Rect.zero;
+  double _pageW = 0;
 
   @override
   void initState() {
     super.initState();
     _ctrl = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 650),
-    );
-    _flipAnim = CurvedAnimation(parent: _ctrl, curve: Curves.easeInOut);
-    _ctrl.addStatusListener(_onAnimStatus);
+      duration: const Duration(milliseconds: 500),
+    )..addStatusListener(_onAnimStatus);
   }
 
   @override
@@ -51,197 +43,281 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
     super.dispose();
   }
 
+  void _computeBookGeometry(Size size) {
+    final cx = size.width / 2;
+    final cy = size.height / 2;
+    final bookW = size.width * 0.82;
+    final bookH = bookW * 0.68;
+    _pageW = bookW / 2;
+    final bookLeft = cx - bookW / 2;
+    final bookTop = cy - bookH / 2;
+    _bookRect = Rect.fromLTWH(bookLeft, bookTop, bookW, bookH);
+    _leftPageRect = Rect.fromLTWH(bookLeft, bookTop, _pageW, bookH);
+    _rightPageRect = Rect.fromLTWH(cx, bookTop, _pageW, bookH);
+  }
+
   void _onAnimStatus(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
       setState(() {
-        if (_flippingForward) {
-          _spread = (_spread + 1).clamp(0, _maxSpread);
-        } else {
-          _spread = (_spread - 1).clamp(0, _maxSpread);
+        if (!_snapBack) {
+          if (_animatingForward && _spread < _maxSpread) {
+            _spread++;
+          } else if (!_animatingForward && _spread > 0) {
+            _spread--;
+          }
         }
-        _isFlipping = false;
+        _dragPoint = null;
+        _isDragging = false;
       });
       _ctrl.reset();
     }
   }
 
-  void _flipForward() {
-    if (_isFlipping || _spread >= _maxSpread) return;
+  void _onPanStart(DragStartDetails details) {
+    if (_ctrl.isAnimating) return;
+    final pos = details.localPosition;
+
+    // Allow starting drag on right page (flip forward) or left page (flip back).
+    if (_rightPageRect.contains(pos) && _spread < _maxSpread) {
+      _isDragging = true;
+      _animatingForward = true;
+      _dragPoint = pos;
+      setState(() {});
+    } else if (_leftPageRect.contains(pos) && _spread > 0) {
+      _isDragging = true;
+      _animatingForward = false;
+      // For backward flip, pretend we're on the right page of the previous spread.
+      _spread--;
+      _dragPoint = pos;
+      setState(() {});
+    }
+  }
+
+  void _onPanUpdate(DragUpdateDetails details) {
+    if (!_isDragging) return;
     setState(() {
-      _flippingForward = true;
-      _isFlipping = true;
+      _dragPoint = details.localPosition;
     });
+  }
+
+  void _onPanEnd(DragEndDetails details) {
+    if (!_isDragging) return;
+
+    // Decide: complete the flip or snap back.
+    final cx = _bookRect.center.dx;
+    final dragX = _dragPoint?.dx ?? cx;
+    final threshold = cx - _pageW * 0.3;
+
+    if (dragX < threshold) {
+      // Complete the flip.
+      _snapBack = false;
+      _animatingForward = true;
+      _ctrl.duration = const Duration(milliseconds: 400);
+      _ctrl.forward(from: 0);
+    } else {
+      // Snap back.
+      _snapBack = true;
+      _animatingForward = true;
+      _ctrl.duration = const Duration(milliseconds: 300);
+      _ctrl.forward(from: 0);
+    }
+
+    _isDragging = false;
+  }
+
+  void _flipForward() {
+    if (_ctrl.isAnimating || _spread >= _maxSpread) return;
+    _snapBack = false;
+    _animatingForward = true;
+    _dragPoint = null;
+    _ctrl.duration = const Duration(milliseconds: 600);
     _ctrl.forward(from: 0);
   }
 
   void _flipBack() {
-    if (_isFlipping || _spread <= 0) return;
-    setState(() {
-      _flippingForward = false;
-      _isFlipping = true;
-    });
+    if (_ctrl.isAnimating || _spread <= 0) return;
+    _spread--;
+    _snapBack = false;
+    _animatingForward = true;
+    _dragPoint = null;
+    _ctrl.duration = const Duration(milliseconds: 600);
     _ctrl.forward(from: 0);
-  }
-
-  void _onTapUp(TapUpDetails details, Size size) {
-    final cx = size.width / 2;
-    if (details.localPosition.dx > cx) {
-      _flipForward();
-    } else {
-      _flipBack();
-    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: const Color(0xFF3E2723), // dark wood background
-      child: Stack(
-        children: [
-          // Subtle background texture lines.
-          CustomPaint(
-            painter: _WoodGrainPainter(),
-            child: const SizedBox.expand(),
-          ),
+      color: const Color(0xFFBBBBBB),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final size = Size(constraints.maxWidth, constraints.maxHeight);
+          _computeBookGeometry(size);
 
-          // Book canvas.
-          Center(
-            child: LayoutBuilder(
-              builder: (_, constraints) {
-                final size = Size(constraints.maxWidth, constraints.maxHeight);
+          return Stack(
+            children: [
+              GestureDetector(
+                onPanStart: _onPanStart,
+                onPanUpdate: _onPanUpdate,
+                onPanEnd: _onPanEnd,
+                child: AnimatedBuilder(
+                  animation: _ctrl,
+                  builder: (ctx, child) {
+                    Offset? effectiveDrag = _dragPoint;
+                    double autoProgress = -1;
 
-                // Determine which pages are flipping.
-                final frontPage = _flippingForward
-                    ? _rightPage
-                    : (_spread > 0 ? kBookPages[(_spread - 1) * 2 + 1] : _leftPage);
-                final backPage = _flippingForward
-                    ? (_spread + 1 <= _maxSpread ? kBookPages[(_spread + 1) * 2] : _rightPage)
-                    : _leftPage;
+                    if (_ctrl.isAnimating || _ctrl.isCompleted && _ctrl.value == 1.0) {
+                      if (_snapBack) {
+                        // Animate from drag point back to corner.
+                        final corner = Offset(_bookRect.right, _bookRect.bottom);
+                        if (_dragPoint != null) {
+                          effectiveDrag = Offset.lerp(_dragPoint, corner, Curves.easeOut.transform(_ctrl.value));
+                        }
+                      } else {
+                        autoProgress = Curves.easeInOut.transform(_ctrl.value);
+                        effectiveDrag = null;
+                      }
+                    }
 
-                // While flipping forward the underlying left page is already
-                // the next spread's left page; while flipping back it's the
-                // previous spread's right page.
-                final underLeft = _flippingForward
-                    ? (_spread + 1 <= _maxSpread
-                        ? kBookPages[(_spread + 1) * 2]
-                        : _leftPage)
-                    : (_spread > 0
-                        ? kBookPages[(_spread - 1) * 2]
-                        : _leftPage);
-                final underRight = _flippingForward
-                    ? (_spread + 1 <= _maxSpread
-                        ? (_spread * 2 + 3 < kBookPages.length
-                            ? kBookPages[_spread * 2 + 3]
-                            : _rightPage)
-                        : _rightPage)
-                    : (_spread > 0
-                        ? kBookPages[(_spread - 1) * 2 + 1]
-                        : _rightPage);
-
-                return GestureDetector(
-                  onTapUp: (d) => _onTapUp(d, size),
-                  child: AnimatedBuilder(
-                    animation: _flipAnim,
-                    builder: (context2, child2) => CustomPaint(
+                    return CustomPaint(
                       size: size,
                       painter: BookPainter(
-                        leftPage: _isFlipping && _flippingForward ? underLeft : _leftPage,
-                        rightPage: _isFlipping && !_flippingForward ? underRight : _rightPage,
-                        flippingFront: frontPage,
-                        flippingBack: backPage,
-                        flipProgress: _isFlipping ? _flipAnim.value : 0.0,
-                        flippingForward: _flippingForward,
+                        pages: kBookPages,
+                        currentSpread: _spread,
+                        dragPoint: effectiveDrag,
+                        autoFlipProgress: autoProgress,
+                        flippingForward: _animatingForward,
                       ),
-                    ),
+                    );
+                  },
+                ),
+              ),
+
+              // Bottom controls.
+              Positioned(
+                bottom: 16,
+                left: 0,
+                right: 0,
+                child: _BottomControls(
+                  spread: _spread,
+                  maxSpread: _maxSpread,
+                  onPrev: _flipBack,
+                  onNext: _flipForward,
+                  onSliderChanged: (v) {
+                    if (!_ctrl.isAnimating && !_isDragging) {
+                      setState(() {
+                        _spread = v;
+                        _dragPoint = null;
+                      });
+                    }
+                  },
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _BottomControls extends StatelessWidget {
+  final int spread;
+  final int maxSpread;
+  final VoidCallback onPrev;
+  final VoidCallback onNext;
+  final ValueChanged<int> onSliderChanged;
+
+  const _BottomControls({
+    required this.spread,
+    required this.maxSpread,
+    required this.onPrev,
+    required this.onNext,
+    required this.onSliderChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final leftPage = spread * 2 + 1;
+    final rightPage = spread * 2 + 2;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24),
+      child: Row(
+        children: [
+          GestureDetector(
+            onTap: onPrev,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.85),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 4,
                   ),
-                );
-              },
+                ],
+              ),
+              child: Icon(
+                Icons.chevron_left,
+                color: spread > 0 ? Colors.black54 : Colors.black12,
+                size: 20,
+              ),
             ),
           ),
-
-          // Navigation buttons.
-          Positioned(
-            bottom: 28,
-            left: 0,
-            right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                _NavButton(
-                  icon: Icons.arrow_back_ios_rounded,
-                  onTap: _flipBack,
-                  enabled: !_isFlipping && _spread > 0,
-                ),
-                const SizedBox(width: 24),
-                Text(
-                  '${_spread + 1} / ${_maxSpread + 1}',
-                  style: const TextStyle(
-                    color: Colors.white54,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w300,
-                    letterSpacing: 1.2,
+          Expanded(
+            child: SliderTheme(
+              data: SliderThemeData(
+                trackHeight: 3,
+                thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 7),
+                activeTrackColor: Colors.black38,
+                inactiveTrackColor: Colors.black12,
+                thumbColor: Colors.white,
+                overlayColor: Colors.black.withValues(alpha: 0.08),
+              ),
+              child: Slider(
+                min: 0,
+                max: maxSpread.toDouble(),
+                divisions: maxSpread > 0 ? maxSpread : 1,
+                value: spread.toDouble(),
+                onChanged: (v) => onSliderChanged(v.round()),
+              ),
+            ),
+          ),
+          GestureDetector(
+            onTap: onNext,
+            child: Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.85),
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 4,
                   ),
-                ),
-                const SizedBox(width: 24),
-                _NavButton(
-                  icon: Icons.arrow_forward_ios_rounded,
-                  onTap: _flipForward,
-                  enabled: !_isFlipping && _spread < _maxSpread,
-                ),
-              ],
+                ],
+              ),
+              child: Icon(
+                Icons.chevron_right,
+                color: spread < maxSpread ? Colors.black54 : Colors.black12,
+                size: 20,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Text(
+            '$leftPage-$rightPage',
+            style: const TextStyle(
+              color: Colors.black45,
+              fontSize: 13,
+              fontWeight: FontWeight.w500,
             ),
           ),
         ],
       ),
     );
   }
-}
-
-class _NavButton extends StatelessWidget {
-  final IconData icon;
-  final VoidCallback onTap;
-  final bool enabled;
-
-  const _NavButton({
-    required this.icon,
-    required this.onTap,
-    required this.enabled,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: enabled ? onTap : null,
-      child: AnimatedOpacity(
-        opacity: enabled ? 1.0 : 0.25,
-        duration: const Duration(milliseconds: 200),
-        child: Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-            border: Border.all(color: Colors.white24),
-          ),
-          child: Icon(icon, color: Colors.white70, size: 18),
-        ),
-      ),
-    );
-  }
-}
-
-/// Paints faint horizontal lines to simulate a wood-grain desk surface.
-class _WoodGrainPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.white.withValues(alpha: 0.025)
-      ..strokeWidth = 1;
-    for (double y = 10; y < size.height; y += 18) {
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
-    }
-  }
-
-  @override
-  bool shouldRepaint(_WoodGrainPainter _) => false;
 }
