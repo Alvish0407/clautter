@@ -85,15 +85,15 @@ class BookPainter extends CustomPainter {
     final nextLeftIdx = leftIdx + 2;
     final nextRightIdx = leftIdx + 3;
 
+    // Always draw the current spread's left page.
+    if (leftPage != null) _drawPage(canvas, leftRect, leftPage, isLeft: true);
+
     if (isFlipping && flippingForward) {
-      // When flipping forward, draw the next spread's pages underneath.
-      final underLeft = nextLeftIdx < pages.length ? pages[nextLeftIdx] : null;
-      final underRight = nextRightIdx < pages.length ? pages[nextRightIdx] : null;
-      if (underLeft != null) _drawPage(canvas, leftRect, underLeft, isLeft: true);
+      // The next spread's left page sits under the right area while the fold travels across.
+      final underRight = nextLeftIdx < pages.length ? pages[nextLeftIdx] : null;
       if (underRight != null) _drawPage(canvas, rightRect, underRight, isLeft: false);
     } else {
-      // Draw current spread.
-      if (leftPage != null) _drawPage(canvas, leftRect, leftPage, isLeft: true);
+      // Not flipping: draw the current right page normally.
       if (rightPage != null) _drawPage(canvas, rightRect, rightPage, isLeft: false);
     }
 
@@ -289,7 +289,7 @@ class BookPainter extends CustomPainter {
       final si = cornerSide[i];
       final sj = cornerSide[j];
 
-      if (si == dragSide) {
+      if (si != dragSide) {
         foldPoints.add(ci);
       }
 

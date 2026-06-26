@@ -69,7 +69,9 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
         _dragPoint = null;
         _isDragging = false;
       });
-      _ctrl.reset();
+      // Reset after the new-spread frame is painted to avoid a flicker frame
+      // where the controller is at 0 but _spread has already advanced.
+      WidgetsBinding.instance.addPostFrameCallback((_) => _ctrl.reset());
     }
   }
 
@@ -86,8 +88,6 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
     } else if (_leftPageRect.contains(pos) && _spread > 0) {
       _isDragging = true;
       _animatingForward = false;
-      // For backward flip, pretend we're on the right page of the previous spread.
-      _spread--;
       _dragPoint = pos;
       setState(() {});
     }
