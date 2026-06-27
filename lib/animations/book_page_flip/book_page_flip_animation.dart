@@ -15,9 +15,9 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
   int _spread = 0;
   Offset? _dragPoint;
   bool _isDragging = false;
+  bool _dragFromTop = false;
 
   late final AnimationController _ctrl;
-  bool _animatingForward = true;
   bool _snapBack = false;
 
   int get _maxSpread => (kBookPages.length ~/ 2) - 1;
@@ -25,7 +25,6 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
   // Book geometry — computed in build, cached for hit-testing.
   Rect _bookRect = Rect.zero;
   Rect _rightPageRect = Rect.zero;
-  Rect _leftPageRect = Rect.zero;
   double _pageW = 0;
 
   @override
@@ -52,25 +51,18 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
     final bookLeft = cx - bookW / 2;
     final bookTop = cy - bookH / 2;
     _bookRect = Rect.fromLTWH(bookLeft, bookTop, bookW, bookH);
-    _leftPageRect = Rect.fromLTWH(bookLeft, bookTop, _pageW, bookH);
     _rightPageRect = Rect.fromLTWH(cx, bookTop, _pageW, bookH);
   }
 
   void _onAnimStatus(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
       setState(() {
-        if (!_snapBack) {
-          if (_animatingForward && _spread < _maxSpread) {
-            _spread++;
-          } else if (!_animatingForward && _spread > 0) {
-            _spread--;
-          }
+        if (!_snapBack && _spread < _maxSpread) {
+          _spread++;
         }
         _dragPoint = null;
         _isDragging = false;
       });
-      // Reset after the new-spread frame is painted to avoid a flicker frame
-      // where the controller is at 0 but _spread has already advanced.
       WidgetsBinding.instance.addPostFrameCallback((_) => _ctrl.reset());
     }
   }
@@ -79,15 +71,9 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
     if (_ctrl.isAnimating) return;
     final pos = details.localPosition;
 
-    // Allow starting drag on right page (flip forward) or left page (flip back).
     if (_rightPageRect.contains(pos) && _spread < _maxSpread) {
       _isDragging = true;
-      _animatingForward = true;
-      _dragPoint = pos;
-      setState(() {});
-    } else if (_leftPageRect.contains(pos) && _spread > 0) {
-      _isDragging = true;
-      _animatingForward = false;
+      _dragFromTop = pos.dy < _rightPageRect.center.dy;
       _dragPoint = pos;
       setState(() {});
     }
@@ -103,21 +89,15 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
   void _onPanEnd(DragEndDetails details) {
     if (!_isDragging) return;
 
-    // Decide: complete the flip or snap back.
     final cx = _bookRect.center.dx;
     final dragX = _dragPoint?.dx ?? cx;
-    final threshold = cx - _pageW * 0.3;
 
-    if (dragX < threshold) {
-      // Complete the flip.
+    if (dragX < cx) {
       _snapBack = false;
-      _animatingForward = true;
       _ctrl.duration = const Duration(milliseconds: 400);
       _ctrl.forward(from: 0);
     } else {
-      // Snap back.
       _snapBack = true;
-      _animatingForward = true;
       _ctrl.duration = const Duration(milliseconds: 300);
       _ctrl.forward(from: 0);
     }
@@ -128,7 +108,7 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
   void _flipForward() {
     if (_ctrl.isAnimating || _spread >= _maxSpread) return;
     _snapBack = false;
-    _animatingForward = true;
+    _dragFromTop = false;
     _dragPoint = null;
     _ctrl.duration = const Duration(milliseconds: 600);
     _ctrl.forward(from: 0);
@@ -136,12 +116,10 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
 
   void _flipBack() {
     if (_ctrl.isAnimating || _spread <= 0) return;
-    _spread--;
-    _snapBack = false;
-    _animatingForward = true;
-    _dragPoint = null;
-    _ctrl.duration = const Duration(milliseconds: 600);
-    _ctrl.forward(from: 0);
+    setState(() {
+      _spread--;
+      _dragPoint = null;
+    });
   }
 
   @override
@@ -167,10 +145,14 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
 
                     if (_ctrl.isAnimating || _ctrl.isCompleted && _ctrl.value == 1.0) {
                       if (_snapBack) {
-                        // Animate from drag point back to corner.
-                        final corner = Offset(_bookRect.right, _bookRect.bottom);
+                        final corner = _dragFromTop
+                            ? Offset(_bookRect.right, _bookRect.top)
+                            : Offset(_bookRect.right, _bookRect.bottom);
                         if (_dragPoint != null) {
-                          effectiveDrag = Offset.lerp(_dragPoint, corner, Curves.easeOut.transform(_ctrl.value));
+                          effectiveDrag = Offset.lerp(
+                            _dragPoint, corner,
+                            Curves.easeOut.transform(_ctrl.value),
+                          );
                         }
                       } else {
                         autoProgress = Curves.easeInOut.transform(_ctrl.value);
@@ -185,14 +167,13 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
                         currentSpread: _spread,
                         dragPoint: effectiveDrag,
                         autoFlipProgress: autoProgress,
-                        flippingForward: _animatingForward,
+                        dragFromTop: _dragFromTop,
                       ),
                     );
                   },
                 ),
               ),
 
-              // Bottom controls.
               Positioned(
                 bottom: 16,
                 left: 0,
