@@ -83,13 +83,15 @@ class BookPainter extends CustomPainter {
 
     final isFlipping = effectiveDrag != null;
     final nextLeftIdx = leftIdx + 2;
+    final nextRightIdx = leftIdx + 3;
 
     // Always draw current spread's left page.
     if (leftPage != null) _drawPage(canvas, leftRect, leftPage, isLeft: true);
 
     if (isFlipping) {
-      // Draw the next page underneath the right area (revealed by the fold).
-      final underPage = nextLeftIdx < pages.length ? pages[nextLeftIdx] : null;
+      // Under the fold: next spread's right page (the surface revealed
+      // on the right when the current right page lifts away).
+      final underPage = nextRightIdx < pages.length ? pages[nextRightIdx] : null;
       if (underPage != null) _drawPage(canvas, rightRect, underPage, isLeft: false);
     } else {
       if (rightPage != null) _drawPage(canvas, rightRect, rightPage, isLeft: false);
@@ -100,8 +102,9 @@ class BookPainter extends CustomPainter {
 
     // Draw fold if dragging or animating.
     if (effectiveDrag != null && rightPage != null) {
+      final backPage = nextLeftIdx < pages.length ? pages[nextLeftIdx] : null;
       _drawFold(
-        canvas, effectiveDrag, rightRect, rightPage,
+        canvas, effectiveDrag, rightRect, rightPage, backPage,
         bookLeft, bookTop, bookRight, bookBottom, pageW, bookH, cx,
       );
     }
@@ -213,6 +216,7 @@ class BookPainter extends CustomPainter {
     Offset drag,
     Rect pageRect,
     PageData frontPage,
+    PageData? backPage,
     double bookLeft,
     double bookTop,
     double bookRight,
@@ -328,8 +332,18 @@ class BookPainter extends CustomPainter {
 
     canvas.transform(reflectMatrix.storage);
 
+    // Counter-mirror horizontally so text on the back reads correctly.
+    // Reflection positions content on the flap but mirrors text.
+    // The extra horizontal flip cancels the mirror, producing readable text.
+    final pageCx = pageRect.center.dx;
+    canvas.translate(pageCx, 0);
+    canvas.scale(-1, 1);
+    canvas.translate(-pageCx, 0);
+
     canvas.drawRect(pageRect, Paint()..color = const Color(0xFFF5F3ED));
-    _drawPageContent(canvas, pageRect, frontPage, isLeft: false);
+    if (backPage != null) {
+      _drawPageContent(canvas, pageRect, backPage, isLeft: true);
+    }
     canvas.drawRect(
       pageRect,
       Paint()..color = Colors.black.withValues(alpha: 0.04),
