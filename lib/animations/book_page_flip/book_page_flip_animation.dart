@@ -66,7 +66,7 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
         _releasePoint = null;
         _isDragging = false;
       });
-      WidgetsBinding.instance.addPostFrameCallback((_) => _ctrl.reset());
+      _ctrl.reset();
     }
   }
 
@@ -148,7 +148,7 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
                     Offset? effectiveDrag = _dragPoint;
                     double autoProgress = -1;
 
-                    if (_ctrl.isAnimating || _ctrl.isCompleted && _ctrl.value == 1.0) {
+                    if (_ctrl.isAnimating) {
                       final corner = _dragFromTop
                           ? Offset(_bookRect.right, _bookRect.top)
                           : Offset(_bookRect.right, _bookRect.bottom);
