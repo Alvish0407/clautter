@@ -17,6 +17,8 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
   bool _isDragging = false;
   bool _dragFromTop = false;
 
+  Offset? _releasePoint;
+
   late final AnimationController _ctrl;
   bool _snapBack = false;
 
@@ -61,6 +63,7 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
           _spread++;
         }
         _dragPoint = null;
+        _releasePoint = null;
         _isDragging = false;
       });
       WidgetsBinding.instance.addPostFrameCallback((_) => _ctrl.reset());
@@ -89,6 +92,7 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
   void _onPanEnd(DragEndDetails details) {
     if (!_isDragging) return;
 
+    _releasePoint = _dragPoint;
     final cx = _bookRect.center.dx;
     final dragX = _dragPoint?.dx ?? cx;
 
@@ -110,6 +114,7 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
     _snapBack = false;
     _dragFromTop = false;
     _dragPoint = null;
+    _releasePoint = null;
     _ctrl.duration = const Duration(milliseconds: 600);
     _ctrl.forward(from: 0);
   }
@@ -144,17 +149,26 @@ class _BookPageFlipAnimationState extends State<BookPageFlipAnimation>
                     double autoProgress = -1;
 
                     if (_ctrl.isAnimating || _ctrl.isCompleted && _ctrl.value == 1.0) {
-                      if (_snapBack) {
-                        final corner = _dragFromTop
-                            ? Offset(_bookRect.right, _bookRect.top)
-                            : Offset(_bookRect.right, _bookRect.bottom);
-                        if (_dragPoint != null) {
-                          effectiveDrag = Offset.lerp(
-                            _dragPoint, corner,
-                            Curves.easeOut.transform(_ctrl.value),
-                          );
-                        }
+                      final corner = _dragFromTop
+                          ? Offset(_bookRect.right, _bookRect.top)
+                          : Offset(_bookRect.right, _bookRect.bottom);
+
+                      if (_releasePoint != null) {
+                        // Continue from where the finger left off.
+                        final target = _snapBack
+                            ? corner
+                            : Offset(
+                                _bookRect.left - _pageW * 0.15,
+                                _dragFromTop
+                                    ? _bookRect.top + _bookRect.height * 0.1
+                                    : _bookRect.bottom - _bookRect.height * 0.1,
+                              );
+                        effectiveDrag = Offset.lerp(
+                          _releasePoint, target,
+                          Curves.easeOut.transform(_ctrl.value),
+                        );
                       } else {
+                        // Auto-flip from button (no prior drag).
                         autoProgress = Curves.easeInOut.transform(_ctrl.value);
                         effectiveDrag = null;
                       }
