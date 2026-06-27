@@ -239,8 +239,8 @@ class BookPainter extends CustomPainter {
     final len = sqrt(dx * dx + dy * dy);
     if (len < 1) return;
 
-    final nx = -dy / len;
-    final ny = dx / len;
+    final nx = dx / len;
+    final ny = dy / len;
 
     final pageCorners = [
       Offset(cx, bookTop),
